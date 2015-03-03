@@ -30,6 +30,7 @@ public class Examples {
 
     public static void main(String[] args) throws ParseException {
         Client.setApiKey(apiKey);
+
         example1();
         example2();
         example3();
@@ -129,13 +130,15 @@ public class Examples {
         System.out.println("  Uploading... ");
 
         Map<String, Object> params = new HashMap<String, Object>();
-        params.put("name",  "Sample File #2");
-        params.put("thumbnails", "100x100,200x200");
+        params.put("name", "Sample File #2");
+        ArrayList<String> thumbnails = new ArrayList<String>();
+        thumbnails.add("100x100");
+        thumbnails.add("200x200");
+        params.put("thumbnails", thumbnails);
         params.put("nonSvg", true);
 
         try {
             document2 = Document.upload(file, params);
-            System.out.println(document2);
 
             System.out.println("success :)");
             System.out.println("  ID is " + document2.get("id") + ".");
@@ -535,6 +538,7 @@ public class Examples {
 
         try {
             session = Session.create(document.get("id").toString());
+            System.out.println(session);
 
             @SuppressWarnings("unchecked")
             Map<String, Object> urls = (Map<String, Object>) session

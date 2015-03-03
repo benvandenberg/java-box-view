@@ -40,10 +40,10 @@ In the future, if you need to return to this page, go to [Box Developers > My Ap
 You can see a number of examples on how to use this library in `examples/Examples.java`.
 These examples are interactive and you can run this file to see `java-box-view` in action.
 
-To run these examples, open up `examples/examples.php` and change this line to show your API key:
+To run these examples, open up `examples/Examples.java` and change this line to show your API key:
 
 ```java
-public static String apiKey = "YOUR_API_KEY"
+public static String apiKey = "YOUR_API_KEY";
 ```
 
 Save the file, make sure the `examples/files` directory is writeable, and then run `examples/Examples.java`:
@@ -56,7 +56,7 @@ You can inspect the `examples/Examples.java` code to see each API call being use
 To start using `java-box-view` in your code, set your API key:
 
 ```java
-Client.setApiKey('YOUR_API_KEY');
+Client.setApiKey("YOUR_API_KEY");
 ```
 
 And now you can start using the methods in `Document` and `Session`.
@@ -84,7 +84,7 @@ You can see `examples/Examples.java` to see working code for each method using t
 
 #### Upload from File
 
-https://developers.box.com/view/#post-documents  
+https://developers.box.com/view/#post-documents
 To upload a document from a local file, use Document.upload().
 Pass in a file resource, and also an optional key-value pair of other params.
 This function returns a key-value pair representing the metadata of the file.
@@ -98,7 +98,7 @@ Map<String, Object> metadata = Document.upload(file);
 File file = new File(filePath);
 
 Map<String, Object> params = new HashMap<String, Object>();
-params.put("name",  "Test File");
+params.put("name", "Test File");
 ArrayList<String> thumbnails = new ArrayList<String>();
 thumbnails.add("100x100");
 thumbnails.add("200x200");
@@ -133,7 +133,7 @@ Map<String, Object> metadata = Document.upload(url);
 
 // with options
 Map<String, Object> params = new HashMap<String, Object>();
-params.put("name",  "Test File");
+params.put("name", "Test File");
 ArrayList<String> thumbnails = new ArrayList<String>();
 thumbnails.add("100x100");
 thumbnails.add("200x200");
