@@ -1,5 +1,6 @@
 package com.box.view;
 
+import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -13,79 +14,14 @@ import org.apache.http.HttpEntity;
  */
 public abstract class Base {
     /**
-     * The request handler.
-     *
-     * @var Request|null
+     * The API path relative to the base API path.
      */
-    protected static Request requestHandler;
+    public static String path = "/";
 
     /**
-     * Handle an error. We handle errors by throwing an exception.
-     *
-     * @param string error An error code representing the error
-     *                     (use_underscore_separators).
-     * @param string message The error message.
-     *
-     * @return void No return value.
-     * @throws Exception
+     * The client instance to make requests from.
      */
-    protected static void error(String error, String message)
-                     throws Exception {
-        throw new Exception(message, error);
-    }
-
-    /**
-     * Send a new request to the API and return a string.
-     *
-     * @param string path The path to add after the base path.
-     * @param object getParams A key-value pair of GET params to be added to the
-     *                         URL.
-     * @param object postParams A key-value pair of POST params to be sent in
-     *                          the body.
-     * @param object requestOpts A key-value pair of request options that may
-     *                           modify the way the request is made.
-     *
-     * @return string The response is pass-thru from Request.
-     * @throws Exception
-     */
-    protected static HttpEntity requestHttpEntity(
-                                              String path,
-                                              Map<String, Object> getParams,
-                                              Map<String, Object> postParams,
-                                              Map<String, Object> requestOpts)
-                     throws Exception {
-        requestOpts.put("rawResponse", true);
-        return getRequestHandler().requestHttpEntity(path,
-                                                     getParams,
-                                                     postParams,
-                                                     requestOpts);
-    }
-
-    /**
-     * Send a new request to the API and return a JSONObject.
-     *
-     * @param string path The path to add after the base path.
-     * @param object getParams A key-value pair of GET params to be added to the
-     *                         URL.
-     * @param object postParams A key-value pair of POST params to be sent in
-     *                          the body.
-     * @param object requestOpts A key-value pair of request options that may
-     *                           modify the way the request is made.
-     *
-     * @return string The response is pass-thru from Request.
-     * @throws Exception
-     */
-    protected static Map<String, Object> requestJson(
-                                             String path,
-                                             Map<String, Object> getParams,
-                                             Map<String, Object> postParams,
-                                             Map<String, Object> requestOpts)
-                     throws Exception {
-        return getRequestHandler().requestJson(path,
-                                               getParams,
-                                               postParams,
-                                               requestOpts);
-    }
+    protected Client client;
 
     /**
      * Take a date object, and return a date string that is formatted as an
@@ -95,7 +31,7 @@ public abstract class Base {
      *
      * @return string An RFC 3339 timestamp.
      */
-    public static String date(Date date) {
+    protected static String date(Date date) {
         String format              = "yyyy-MM-dd'T'HH:mm:ss";
         SimpleDateFormat isoFormat = new SimpleDateFormat(format);
         isoFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
@@ -111,31 +47,112 @@ public abstract class Base {
      * @return string An RFC 3339 timestamp.
      * @throws ParseException
      */
-    public static String date(String dateString) throws ParseException {
+    protected static String date(String dateString) throws ParseException {
         return date(SimpleDateFormat.getInstance().parse(dateString));
     }
 
     /**
-     * Return the request handler.
+     * Handle an error. We handle errors by throwing an exception.
      *
-     * @return Request The request handler.
+     * @param string error An error code representing the error
+     *                     (use_underscore_separators).
+     * @param string message The error message.
+     *
+     * @return void
+     * @throws Exception
      */
-    public static Request getRequestHandler() {
-        if (requestHandler == null) {
-            setRequestHandler(new Request(Client.getApiKey()));
-        }
-
-        return requestHandler;
+    protected static void error(String error, String message)
+                     throws Exception {
+        throw new Exception(message, error);
     }
 
     /**
-     * Set the request handler.
+     * Take a date object or date string in RFC 3339 format, and return a date
+     * object.
      *
-     * @param Request requestHandler The request handler.
+     * @param object dateString A date or date string in RFC 3339 format.
      *
-     * @return void No return value.
+     * @return Date The date representation of the dateString.
      */
-    public static void setRequestHandler(Request newRequestHandler) {
-        requestHandler = newRequestHandler;
+    protected static Date parseDate(Object dateString) {
+        if (dateString instanceof Date) {
+            return (Date) dateString;
+        }
+
+        Date date;
+
+        try {
+            String format         = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
+            DateFormat dateFormat = new SimpleDateFormat(format);
+            date                  = dateFormat.parse((String) dateString);
+        } catch (ParseException e) {
+            try {
+                String format         = "yyyy-MM-dd'T'HH:mm:ss'Z'";
+                DateFormat dateFormat = new SimpleDateFormat(format);
+                date                  = dateFormat.parse((String) dateString);
+            } catch (ParseException e2) {
+                date = null;
+            }
+        }
+
+        return date;
+    }
+
+    /**
+     * Send a new request to the API and return a string.
+     *
+     * @param Client client The client instance to make requests from.
+     * @param string path The path to make a request to.
+     * @param object|null getParams A key-value pair of GET params to be added
+     *                              to the URL.
+     * @param object|null postParams A key-value pair of POST params to be sent
+     *                               in the body.
+     * @param object|null requestOptions A key-value pair of request options
+     *                                   that may modify the way the request is made.
+     *
+     * @return string The response is pass-thru from Request.
+     * @throws Exception
+     */
+    protected static HttpEntity requestHttpEntity(
+                                             Client client,
+                                             String path,
+                                             Map<String, Object> getParams,
+                                             Map<String, Object> postParams,
+                                             Map<String, Object> requestOptions)
+                     throws Exception {
+        requestOptions.put("rawResponse", true);
+        return client.getRequestHandler().requestHttpEntity(path,
+                                                            getParams,
+                                                            postParams,
+                                                            requestOptions);
+    }
+
+    /**
+     * Send a new request to the API and return a JSONObject.
+     *
+     * @param Client client The client instance to make requests from.
+     * @param string path The path to make a request to.
+     * @param object|null getParams A key-value pair of GET params to be added
+     *                              to the URL.
+     * @param object|null postParams A key-value pair of POST params to be sent
+     *                               in the body.
+     * @param object|null requestOptions A key-value pair of request options
+     *                                   that may modify the way the request is
+     *                                   made.
+     *
+     * @return string The response is pass-thru from Request.
+     * @throws Exception
+     */
+    protected static Map<String, Object> requestJson(
+                                             Client client,
+                                             String path,
+                                             Map<String, Object> getParams,
+                                             Map<String, Object> postParams,
+                                             Map<String, Object> requestOptions)
+                     throws Exception {
+        return client.getRequestHandler().requestJson(path,
+                                                      getParams,
+                                                      postParams,
+                                                      requestOptions);
     }
 }

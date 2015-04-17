@@ -7,6 +7,7 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.http.HttpEntity;
@@ -14,128 +15,215 @@ import org.apache.http.HttpEntity;
 /**
  * Provide access to the Box View Document API. The Document API is used for
  * uploading, checking status, and deleting documents.
+ *
+ * Document objects have the following fields:
+ *   - string 'id' The document ID.
+ *   - string|Date 'createdAt' The date the document was created, formatted as
+ *                        RFC 3339.
+ *   - string 'name' The document title.
+ *   - string 'status' The document status, which can be 'queued', 'processing',
+ *                     'done', or 'error'.
+ *
+ * Only the following fields can be updated:
+ *   - string 'name' The document title.
+ *
+ * When finding documents, the following parameters can be set:
+ *   - int|null 'limit' The number of documents to return.
+ *   - string|Date|null 'createdBefore' Upper date limit to filter by.
+ *   - string|Date|null 'createdAfter' Lower date limit to filter by.
+ *
+ * When uploading a file, the following parameters can be set:
+ *   - string|null 'name' Override the filename of the file being uploaded.
+ *   - string[]|string|null 'thumbnails' An array of dimensions in pixels, with
+ *                                       each dimension formatted as
+ *                                       [width]x[height], this can also be a
+ *                                       comma-separated string.
+ *   - bool|null 'nonSvg' Create a second version of the file that doesn't use
+ *                        SVG, for users with browsers that don't support SVG?
+ *
  */
 public class Document extends Base {
     /**
-     * The request handler.
-     *
-     * @var Request|null
+     * Document error codes.
      */
-    protected static Request requestHandler;
+    public static final String INVALID_FILE_ERROR     = "invalid_file";
+    public static final String INVALID_RESPONSE_ERROR = "invalid_response";
+
+    /**
+     * An alternate hostname that file upload requests are sent to.
+     */
+    public static final String FILE_UPLOAD_HOST = "upload.view-api.box.com";
 
     /**
      * The Document API path relative to the base API path.
-     *
-     * @var string
      */
     public static final String path = "/documents";
 
     /**
-     * Generic upload function used by the two other upload functions, which are
-     * more specific than this one, and know how to handle upload by URL and
-     * upload from filesystem.
-     *
-     * @param object|null params A key-value pair of options relating to the
-     *                           file upload. Pass-thru from the other upload
-     *                           functions.
-     * @param object|null postParams A key-value pair of POST params to be sent
-     *                               in the body.
-     * @param object|null options A key-value pair of request options that may
-     *                            modify the way the request is made.
-     *
-     * @return object A key-value pair representing the metadata of the file.
-     * @throws Exception
+     * The fields that can be updated on a document.
+     * @var array
      */
-    @SuppressWarnings("unchecked")
-    private static Map<String, Object> upload(Map<String, Object> params,
-                                              Map<String, Object> postParams,
-                                              Map<String, Object> options)
-                   throws Exception {
-        if (postParams == null) {
-            postParams = new HashMap<String, Object>();
-        }
+    public static final String[] updateableFields = {"name"};
 
-        if (params.containsKey("name")) {
-            postParams.put("name", params.get("name"));
-        }
+    /**
+     * The date the document was created, formatted as RFC 3339.
+     */
+    private Date createdAt;
 
-        if (params.containsKey("thumbnails")) {
-            Object thumbnails = params.get("thumbnails");
+    /**
+     * The document ID.
+     */
+    private String id;
 
-            if (thumbnails instanceof ArrayList<?>) {
-                StringBuilder sb = new StringBuilder();
+    /**
+     * The document title.
+     */
+    private String name;
 
-                for (int i = 0;
-                        i < ((ArrayList<String>) thumbnails).size();
-                        i++) {
-                    if (i > 0) sb.append(",");
-                    sb.append(((ArrayList<String>) thumbnails).get(i));
-                }
+    /**
+     * The document status, which can be 'queued', 'processing', 'done', or
+     * 'error'.
+     */
+    private String status;
 
-                thumbnails = sb.toString();
-            }
+    /**
+     * Instantiate the document.
+     *
+     * @param Client client The client instance to make requests from.
+     * @param object data A key-value pair to instantiate the object with. Use
+     *                    the following values:
+     *                      - string 'id' The document ID.
+     *                      - string|Date 'createdAt' The date the document was
+     *                        created, formatted as RFC 3339.
+     *                      - string 'name' The document title.
+     *                      - string 'status' The document status, which can be
+     *                        'queued', 'processing', 'done', or 'error'.
+     */
+    public Document(Client client, Map<String, Object>data) {
+        this.client = client;
+        id          = (String) data.get("id");
 
-            postParams.put("thumbnails", thumbnails);
-        }
-
-        if (params.containsKey("nonSvg")) {
-            postParams.put("non_svg", params.get("nonSvg"));
-        }
-
-        return requestJson(path, null, postParams, options);
+        setValues(data);
     }
 
     /**
-     * Delete a file by ID.
+     * Get the date the document was created, formatted as RFC 3339.
      *
-     * @param string id The ID of the file to delete.
+     * @return Date The date the document was created, formatted as RFC 3339.
+     */
+    public Date createdAt() {
+        return createdAt;
+    }
+
+    /**
+     * Get the document ID.
+     *
+     * @return string The document ID.
+     */
+    public String id() {
+        return id;
+    }
+
+    /**
+     * Get the document title.
+     *
+     * @return string The document title.
+     */
+    public String name() {
+        return name;
+    }
+
+    /**
+     * Get the document status.
+     *
+     * @return string The document title.
+     */
+    public String status() {
+        return status;
+    }
+
+    /**
+     * Create a session for a specific document.
+     *
+     * @return Session A new session instance.
+     * @throws Exception
+     */
+    public Session createSession() throws Exception {
+        return Session.create(client, id);
+    }
+
+    /**
+     * Create a session for a specific document.
+     *
+     * @param object|null params A key-value pair of options relating to the new
+     *                           session. None are necessary; all are optional.
+     *                           Use the following options:
+     *                             - int|null 'duration' The number of minutes
+     *                               for the session to last.
+     *                             - string|Date|null 'expiresAt' When the
+     *                               session should expire.
+     *                             - bool|null 'isDownloadable' Should the user
+     *                               be allowed to download the original file?
+     *                             - bool|null 'isTextSelectable' Should the
+     *                               user be allowed to select text?
+     *
+     * @return Session A new session instance.
+     * @throws Exception
+     */
+    public Session createSession(Map<String, Object> params) throws Exception {
+        return Session.create(client, id, params);
+    }
+
+    /**
+     * Delete a file.
      *
      * @return bool Was the file deleted?
      * @throws Exception
      */
-    public static Boolean delete(String id) throws Exception {
-        String path = Document.path + "/" + id;
-
+    public Boolean delete() throws Exception {
         Map<String, Object> options = new HashMap<String, Object>();
         options.put("httpMethod", "DELETE");
         options.put("rawResponse", true);
 
-        HttpEntity response = requestHttpEntity(path, null, null,  options);
+        HttpEntity response = requestHttpEntity(client,
+                                                path + "/" + id,
+                                                null,
+                                                null,
+                                                options);
 
         // a successful delete returns nothing, so we return true in that case
         return (response == null);
     }
 
     /**
-     * Download a file using a specific extension or the original extension.
-     *
-     * @param string id The ID of the file to download.
+     * Download a file using the original extension.
      *
      * @return string The contents of the downloaded file.
      * @throws Exception
      */
-    public static InputStream download(String id) throws Exception {
-        String path = Document.path + "/" + id + "/content";
-
+    public InputStream download() throws Exception {
         Map<String, Object> options = new HashMap<String, Object>();
         options.put("rawResponse", true);
 
-        HttpEntity response = requestHttpEntity(path, null, null, options);
+        HttpEntity response = requestHttpEntity(client,
+                                                path + "/" + id + "/content",
+                                                null,
+                                                null,
+                                                options);
         InputStream stream = null;
 
         try {
             stream = response.getContent();
         } catch (IOException e) {
-            error("invalid_response", e.getMessage());
+            error(INVALID_RESPONSE_ERROR, e.getMessage());
         }
 
         return stream;
     }
 
     /**
-     * Download a file using a specific extension or the original extension.
+     * Download a file using a specific extension.
      *
-     * @param string id The ID of the file to download.
      * @param string extension The extension to download the file in, which can
      *                         be pdf or zip. If no extension is provided, the
      *                         file will be downloaded using the original
@@ -144,40 +232,111 @@ public class Document extends Base {
      * @return string The contents of the downloaded file.
      * @throws Exception
      */
-    public static InputStream download(String id, String extension)
-                  throws Exception {
+    public InputStream download(String extension) throws Exception {
         String path = Document.path + "/" + id + "/content." + extension;
 
         Map<String, Object> options = new HashMap<String, Object>();
         options.put("rawResponse", true);
 
-        HttpEntity response = requestHttpEntity(path, null, null, options);
+        HttpEntity response = requestHttpEntity(client,
+                                                path,
+                                                null,
+                                                null,
+                                                options);
         InputStream stream  = null;
 
         try {
             stream = response.getContent();
         } catch (IOException e) {
-            error("invalid_response", e.getMessage());
+            error(INVALID_RESPONSE_ERROR, e.getMessage());
         }
 
         return stream;
     }
 
-
     /**
-     * Get a list of all documents that meet the provided criteria.
+     * Download a thumbnail of a specific size for a file.
      *
-     * @return object A key-value pair containing a list of documents matching
-     *                the request.
+     * @param int width The width of the thumbnail in pixels.
+     * @param int height The height of the thumbnail in pixels.
+     *
+     * @return string The contents of the downloaded thumbnail.
      * @throws Exception
      */
-    public static Map<String, Object> list() throws Exception {
-        return requestJson(path, null, null, null);
+    public InputStream thumbnail(Integer width, Integer height)
+           throws Exception {
+        Map<String, Object> getParams = new HashMap<String, Object>();
+        getParams.put("height", height.toString());
+        getParams.put("width", width.toString());
+
+        Map<String, Object> options = new HashMap<String, Object>();
+        options.put("rawResponse", true);
+
+        HttpEntity response = requestHttpEntity(client,
+                                                path + "/" + id + "/thumbnail",
+                                                getParams,
+                                                null,
+                                                options);
+        InputStream stream = null;
+
+        try {
+            stream = response.getContent();
+        } catch (IOException e) {
+            error(INVALID_RESPONSE_ERROR, e.getMessage());
+        }
+
+        return stream;
+    }
+
+    /**
+     * Update specific fields for the metadata of a file .
+     *
+     * @param object fields A key-value pair of the fields to update on the
+     *                      file.
+     *
+     * @return bool Was the file updated?
+     * @throws Exception
+     */
+    public Boolean update(Map<String, Object> fields) throws Exception {
+        Map<String, Object> postParams = new HashMap<String, Object>();
+
+        for (String field : updateableFields) {
+            if (fields.containsKey(field)
+                    && !fields.get(field).toString().isEmpty()) {
+                postParams.put(field, fields.get(field));
+            }
+        }
+
+        Map<String, Object> options = new HashMap<String, Object>();
+        options.put("httpMethod", "PUT");
+
+        Map<String, Object> metadata = requestJson(client,
+                                                   path + "/" + id,
+                                                   null,
+                                                   postParams,
+                                                   options);
+        setValues(metadata);
+        return true;
+    }
+
+    /**
+     * Get a list of all documents.
+     *
+     * @param Client client The client instance to make requests from.
+     *
+     * @return array An array containing instances of all documents.
+     * @throws Exception
+     * @throws ParseException
+     */
+    public static List<Document> find(Client client)
+                  throws Exception, ParseException {
+        return find(client, new HashMap<String, Object>());
     }
 
     /**
      * Get a list of all documents that meet the provided criteria.
      *
+     * @param Client client The client instance to make requests from.
      * @param object params A key-value pair to filter the list of all documents
      *                      uploaded. None are necessary; all are optional. Use
      *                      the following options:
@@ -188,12 +347,12 @@ public class Document extends Base {
      *                        - string|Date|null 'createdAfter' Lower date limit
      *                          to filter by.
      *
-     * @return object A key-value pair containing a list of documents matching
-     *                the request.
+     * @return array An array containing document instances matching the
+     *               request.
      * @throws Exception
-     * @throws ParseException
      */
-    public static Map<String, Object> list(Map<String, Object> params)
+    @SuppressWarnings("unchecked")
+    public static List<Document> find(Client client, Map<String, Object> params)
                   throws Exception, ParseException {
         Map<String, Object> getParams = new HashMap<String, Object>();
 
@@ -228,180 +387,238 @@ public class Document extends Base {
             getParams.put("createdAfter", createdAfterString);
         }
 
-        return requestJson(path, getParams, null, null);
+        Map<String, Object> response = requestJson(client,
+                                                   path,
+                                                   getParams,
+                                                   null,
+                                                   null);
+
+        if (response.isEmpty()
+                || ((Map<String, Object>) response.get("document_collection"))
+                   .isEmpty()
+                || !((Map<String, Object>) response.get("document_collection"))
+                    .containsKey("entries")) {
+        String message = "response is not in a valid format.";
+            error(INVALID_RESPONSE_ERROR, message);
+        }
+
+        Map<String, Object> collection         =
+                      (Map<String, Object>) response.get("document_collection");
+        List<Map<String, Object>> entries =
+                          (List<Map<String, Object>>) collection.get("entries");
+
+        List<Document> documents = new ArrayList<Document>();
+
+        for (Map<String, Object> entry : entries) {
+            documents.add(new Document(client, entry));
+        }
+
+        return documents;
     }
 
     /**
      * Get specific fields from the metadata of a file.
      *
+     * @param Client client The client instance to make requests from.
      * @param string id The ID of the file to check.
-     * @param string fields The fields to return with the metadata, formatted
-     *                      as a comma-separated string. Regardless of which
-     *                      fields are provided, id and type are always
-     *                      returned.
      *
-     * @return object A key-value pair representing the metadata of the file.
+     * @return Document A document instance using data from the API.
      * @throws Exception
      */
-    public static Map<String, Object> metadata(String id, String fields)
+    public static Document get(Client client, String id)
                   throws Exception {
-        Map<String, Object> getParams = new HashMap<String, Object>();
-        getParams.put("fields", fields);
+        String[] fields   = {"id", "created_at", "name", "status"};
+        StringBuilder sb  = new StringBuilder();
 
-        return requestJson(path + "/" + id, getParams, null, null);
-    }
-
-    /**
-     * Get specific fields from the metadata of a file.
-     *
-     * @param string id The ID of the file to check.
-     * @param string[] fields The fields to return with the metadata, formatted
-     *                        as an array. Regardless of which fields are
-     *                        provided, id and type are always returned.
-     *
-     * @return object A key-value pair representing the metadata of the file.
-     * @throws Exception
-     */
-    public static Map<String, Object> metadata(String id,
-                                               ArrayList<String> fields)
-                  throws Exception {
-        StringBuilder sb = new StringBuilder();
-
-        for (int i = 0; i < fields.size(); i++) {
+        for (int i = 0; i < fields.length; i++) {
             if (i > 0) sb.append(",");
-            sb.append(fields.get(i));
+            sb.append(fields[i]);
         }
-
-        return metadata(id, sb.toString());
-    }
-
-    /**
-     * Download a thumbnail of a specific size for a file.
-     *
-     * @param string id The ID of the file to download a thumbnail for.
-     * @param int width The width of the thumbnail in pixels.
-     * @param int height The height of the thumbnail in pixels.
-     *
-     * @return string The contents of the downloaded thumbnail.
-     * @throws Exception
-     */
-    public static InputStream thumbnail(String id,
-                                        Integer width,
-                                        Integer height)
-                  throws Exception {
-        String path = Document.path + "/" + id + "/thumbnail";
 
         Map<String, Object> getParams = new HashMap<String, Object>();
-        getParams.put("height", height.toString());
-        getParams.put("width", width.toString());
+        getParams.put("fields", sb.toString());
 
-        Map<String, Object> options = new HashMap<String, Object>();
-        options.put("rawResponse", true);
+        Map<String, Object> metadata = requestJson(client,
+                                                   path + "/" + id,
+                                                   getParams,
+                                                   null,
+                                                   null);
 
-        HttpEntity response = requestHttpEntity(path,
-                                                getParams,
-                                                null,
-                                                options);
-        InputStream stream = null;
-
-        try {
-            stream = response.getContent();
-        } catch (IOException e) {
-            error("invalid_response", e.getMessage());
-        }
-
-        return stream;
+        return new Document(client, metadata);
     }
 
     /**
-     * Update specific fields for the metadata of a file .
+     * Upload a local file and return a new document instance.
      *
-     * @param string id The ID of the file to check.
-     * @param object fields A key-value pair of the fields to update on the
-     *                      file.
-     *
-     * @return object A key-value pair representing the metadata of the file.
-     * @throws Exception
-     */
-    public static Map<String, Object> update(String id,
-                                             Map<String, Object> fields)
-                  throws Exception {
-        Map<String, Object> postParams = new HashMap<String, Object>();
-
-        ArrayList<String> supportedFields = new ArrayList<String>();
-        supportedFields.add("name");
-
-        for (int i = 0; i < supportedFields.size(); i++) {
-            String field = supportedFields.get(i);
-
-            if (fields.containsKey(field)
-                    && !fields.get(field).toString().isEmpty()) {
-                postParams.put(field, fields.get(field));
-            }
-        }
-
-        Map<String, Object> options = new HashMap<String, Object>();
-        options.put("httpMethod", "PUT");
-
-        return requestJson(path + "/" + id, null, postParams, options);
-    }
-
-    /**
-     * Upload a local file.
-     *
+     * @param Client client The client instance to make requests from.
      * @param File file The file resource to upload.
-     * @param object params An key-value pair of options relating to the file
-     *                      upload. None are necessary; all are optional. Use
-     *                      the following options:
-     *                        - string|null 'name' Override the filename of the
-     *                          file being uploaded.
-     *                        - string[]|string|null 'thumbnails' A key-value
-     *                          pair  of dimensions in pixels, with each
-     *                          dimension formatted as [width]x[height], this
-     *                          can also be a comma-separated string.
-     *                        - bool|null 'nonSvg' Create a second version of
-     *                          the file that doesn't use SVG, for users with
-     *                          browsers that don't support SVG?
      *
-     * @return object A key-value pair representing the metadata of the file.
+     * @return Document A new document instance.
      * @throws Exception
      */
-    public static Map<String, Object> upload(File file,
-                                             Map<String, Object> params)
+    public static Document upload(Client client, File file) throws Exception {
+        return upload(client, file, new HashMap<String, Object>());
+    }
+
+    /**
+     * Upload a local file and return a new document instance.
+     *
+     * @param Client client The client instance to make requests from.
+     * @param File file The file resource to upload.
+     * @param object|null params An key-value pair of options relating to the
+     *                           file upload. None are necessary; all are
+     *                           optional. Us the following options:
+     *                             - string|null 'name' Override the filename of
+     *                               the file being uploaded.
+     *                             - string[]|string|null 'thumbnails' An array
+     *                               of dimensions in pixels, with each
+     *                               dimension formatted as [width]x[height],
+     *                               this can also be a comma-separated string.
+     *                             - bool|null 'nonSvg' Create a second version
+     *                               of the file that doesn't use SVG, for users
+     *                               with browsers that don't support SVG?
+     *
+     * @return Document A new document instance.
+     * @throws Exception
+     */
+    public static Document upload(Client client,
+                                  File file,
+                                  Map<String, Object> params)
                   throws Exception {
         Map<String, Object> options = new HashMap<String, Object>();
         options.put("file", file);
-        options.put("host", "upload.view-api.box.com");
+        options.put("host", FILE_UPLOAD_HOST);
 
-        return upload(params, null, options);
+        return upload(client, params, null, options);
     }
 
     /**
-     * Upload a file by URL.
+     * Upload a file by URL and return a new document instance.
      *
-     * @param String url The url of the file to upload.
-     * @param object params An key-value pair of options relating to the file
-     *                      upload. None are necessary; all are optional. Use
-     *                      the following options:
-     *                        - string|null 'name' Override the filename of the
-     *                          file being uploaded.
-     *                        - string[]|string|null 'thumbnails' A key-value
-     *                          pair  of dimensions in pixels, with each
-     *                          dimension formatted as [width]x[height], this
-     *                          can also be a comma-separated string.
-     *                        - bool|null 'nonSvg' Create a second version of
-     *                          the file that doesn't use SVG, for users with
-     *                          browsers that don't support SVG?
+     * @param Client client The client instance to make requests from.
+     * @param String url The URL of the file to upload.
      *
-     * @return object A key-value pair representing the metadata of the file.
+     * @return Document A new document instance.
      * @throws Exception
      */
-    public static Map<String, Object> upload(String url,
-                                             Map<String, Object> params)
+    public static Document upload(Client client, String url) throws Exception {
+        return upload(client, url, new HashMap<String, Object>());
+    }
+
+    /**
+     * Upload a file by URL and return a new document instance.
+     *
+     * @param Client client The client instance to make requests from.
+     * @param String url The URL of the file to upload.
+     * @param object|null params An key-value pair of options relating to the
+     *                           file upload. None are necessary; all are
+     *                           optional. Us the following options:
+     *                             - string|null 'name' Override the filename of
+     *                               the file being uploaded.
+     *                             - string[]|string|null 'thumbnails' An array
+     *                               of dimensions in pixels, with each
+     *                               dimension formatted as [width]x[height],
+     *                               this can also be a comma-separated string.
+     *                             - bool|null 'nonSvg' Create a second version
+     *                               of the file that doesn't use SVG, for users
+     *                               with browsers that don't support SVG?
+     *
+     * @return Document A new document instance.
+     * @throws Exception
+     */
+    public static Document upload(Client client,
+                                  String url,
+                                  Map<String, Object> params)
                   throws Exception {
         Map<String, Object> postParams = new HashMap<String, Object>();
         postParams.put("url", url);
 
-        return upload(params, postParams, null);
+        return upload(client, params, postParams, null);
+    }
+
+    /**
+     * Update the current document instance with new metadata.
+     *
+     * @param object data A key-value pair to instantiate the object with.
+     *                    Use the following values:
+     *                      - string|Date 'createdAt' The date the document was
+     *                        created.
+     *                      - string 'name' The document title.
+     *                      - string 'status' The document status, which can be
+     *                        'queued', 'processing', 'done', or 'error'.
+     */
+    private void setValues(Map<String, Object> data) {
+        if (data.containsKey("created_at")) {
+            data.put("createdAt", data.get("created_at"));
+            data.remove("created_at");
+        }
+
+        if (data.containsKey("createdAt")) {
+            createdAt = parseDate(data.get("createdAt"));
+        }
+
+        if (data.containsKey("name"))   name   = (String) data.get("name");
+        if (data.containsKey("status")) status = (String) data.get("status");
+    }
+
+    /**
+     * Generic upload function used by the two other upload functions, which are
+     * more specific than this one, and know how to handle upload by URL and
+     * upload from filesystem.
+     *
+     * @param Client client The client instance to make requests from.
+     * @param object|null params A key-value pair of options relating to the
+     *                           file upload. Pass-thru from the other upload
+     *                           functions.
+     * @param object|null postParams A key-value pair of POST params to be sent
+     *                               in the body.
+     * @param object|null options A key-value pair of request options that may
+     *                            modify the way the request is made.
+     *
+     * @return Document A new document instance.
+     * @throws Exception
+     */
+    private static Document upload(Client client,
+                                   Map<String, Object> params,
+                                   Map<String, Object> postParams,
+                                   Map<String, Object> options)
+                   throws Exception {
+        if (postParams == null) {
+            postParams = new HashMap<String, Object>();
+        }
+
+        if (params.containsKey("name")) {
+            postParams.put("name", params.get("name"));
+        }
+
+        if (params.containsKey("thumbnails")) {
+            Object thumbnails = params.get("thumbnails");
+
+            if (thumbnails instanceof List<?>) {
+                @SuppressWarnings("unchecked")
+                List<String> thumbnailsList = (List<String>) thumbnails;
+                StringBuilder sb = new StringBuilder();
+
+                for (int i = 0; i < thumbnailsList.size(); i++) {
+                    if (i > 0) sb.append(",");
+                    sb.append(thumbnailsList.get(i));
+                }
+
+                thumbnails = sb.toString();
+            }
+
+            postParams.put("thumbnails", thumbnails);
+        }
+
+        if (params.containsKey("nonSvg")) {
+            postParams.put("non_svg", params.get("nonSvg"));
+        }
+
+        Map<String, Object> metadata = requestJson(client,
+                                                   path,
+                                                   null,
+                                                   postParams,
+                                                   options);
+        return new Document(client, metadata);
     }
 }

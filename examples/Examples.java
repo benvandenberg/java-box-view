@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.io.FileUtils;
@@ -15,21 +16,22 @@ import com.box.view.Document;
 import com.box.view.Session;
 
 public class Examples {
-//    public static String apiKey = "YOUR_API_KEY";
-    public static String apiKey = "01iet7esk486i0ujkopk0vowbcp99rgo";
+    public static String apiKey = "YOUR_API_KEY";
 
-    public static Map<String, Object> document;
+    public static Client boxView;
 
-    public static Map<String, Object> document2;
+    public static Document document;
 
-    public static Map<String, Object> session;
+    public static Document document2;
 
-    public static Map<String, Object> session2;
+    public static Session session;
+
+    public static Session session2;
 
     public static Date start = new Date();
 
     public static void main(String[] args) throws ParseException {
-        Client.setApiKey(apiKey);
+        boxView = new Client(apiKey);
 
         example1();
         example2();
@@ -65,10 +67,10 @@ public class Examples {
         params.put("name", "Sample File");
 
         try {
-            document = Document.upload(sampleUrl, params);
+            document = boxView.upload(sampleUrl, params);
 
             System.out.println("success :)");
-            System.out.println("  ID is " + document.get("id") + ".");
+            System.out.println("  ID is " + document.id() + ".");
         } catch (com.box.view.Exception e) {
             System.out.println("failed :(");
             System.out.println("  Error Code: " + e.getCode());
@@ -88,26 +90,18 @@ public class Examples {
                            + " uploaded.");
         System.out.println("  Checking metadata... ");
 
-        ArrayList<String> fields = new ArrayList<String>();
-        fields.add("id");
-        fields.add("type");
-        fields.add("status");
-        fields.add("name");
-        fields.add("created_at");
-
-        String id = document.get("id").toString();
-
         try {
-            Map<String, Object> metadata = Document.metadata(id, fields);
+            Document documentDuplicate = boxView.getDocument(document.id());
 
             System.out.println("success :)");
-            System.out.println("  File ID is " + metadata.get("id") + ".");
-            System.out.println("  File type is " + metadata.get("type") + ".");
-            System.out.println("  File status is " + metadata.get("status")
+            System.out.println("  File ID is " + documentDuplicate.id() + ".");
+            System.out.println("  File status is " + documentDuplicate.status()
                                + ".");
-            System.out.println("  File name is " + metadata.get("name") + ".");
+            System.out.println("  File name is " + documentDuplicate.name()
+                               + ".");
             System.out.println("  File was created on "
-                               + metadata.get("created_at") + ".");
+                               + documentDuplicate.createdAt().toString()
+                               + ".");
         } catch (com.box.view.Exception e) {
             System.out.println("failed :(");
             System.out.println("  Error Code: " + e.getCode());
@@ -138,10 +132,10 @@ public class Examples {
         params.put("nonSvg", true);
 
         try {
-            document2 = Document.upload(file, params);
+            document2 = boxView.upload(file, params);
 
             System.out.println("success :)");
-            System.out.println("  ID is " + document2.get("id") + ".");
+            System.out.println("  ID is " + document2.id() + ".");
         } catch (com.box.view.Exception e) {
             System.out.println("failed :(");
             System.out.println("  Error Code: " + e.getCode());
@@ -161,26 +155,18 @@ public class Examples {
                            + " uploaded.");
         System.out.println("  Checking metadata... ");
 
-        ArrayList<String> fields = new ArrayList<String>();
-        fields.add("id");
-        fields.add("type");
-        fields.add("status");
-        fields.add("name");
-        fields.add("created_at");
-
-        String id = document2.get("id").toString();
-
         try {
-            Map<String, Object> metadata = Document.metadata(id, fields);
+            Document documentDuplicate = boxView.getDocument(document2.id());
 
             System.out.println("success :)");
-            System.out.println("  File ID is " + metadata.get("id") + ".");
-            System.out.println("  File type is " + metadata.get("type") + ".");
-            System.out.println("  File status is " + metadata.get("status")
+            System.out.println("  File ID is " + documentDuplicate.id() + ".");
+            System.out.println("  File status is " + documentDuplicate.status()
                                + ".");
-            System.out.println("  File name is " + metadata.get("name") + ".");
+            System.out.println("  File name is " + documentDuplicate.name()
+                               + ".");
             System.out.println("  File was created on "
-                               + metadata.get("created_at") + ".");
+                               + documentDuplicate.createdAt().toString()
+                               + ".");
         } catch (com.box.view.Exception e) {
             System.out.println("failed :(");
             System.out.println("  Error Code: " + e.getCode());
@@ -196,7 +182,7 @@ public class Examples {
      * List the documents we've uploaded since starting these examples.
      */
     public static void example5() throws ParseException {
-        System.out.println("Example #5 - List the documents we uploaded so"
+        System.out.println("Example #5 - List the documents we've uploaded so"
                            + " far.");
         System.out.println("  Listing documents... ");
 
@@ -204,34 +190,22 @@ public class Examples {
         params.put("createdAfter", start);
 
         try {
-            Map<String, Object> documents = Document.list(params);
+            List<Document> documents = boxView.findDocuments(params);
 
-            @SuppressWarnings("unchecked")
-            Map<String, Object> documentCollection =
-                    (Map<String, Object>) documents.get("document_collection");
-            @SuppressWarnings("unchecked")
-            ArrayList<Map<String, Object>> entries =
-                            (ArrayList<Map<String, Object>>) documentCollection
-                                                             .get("entries");
-
-            Map<String, Object> doc1 = entries.get(0);
-            Map<String, Object> doc2 = entries.get(1);
+            Document doc1 = documents.get(0);
+            Document doc2 = documents.get(1);
 
             System.out.println("success :)");
-            System.out.println("  File #1 ID is " + doc1.get("id") + ".");
-            System.out.println("  File #1 type is " + doc1.get("type") + ".");
-            System.out.println("  File #1 status is " + doc1.get("status")
-                               + ".");
-            System.out.println("  File #1 name is " + doc1.get("name") + ".");
+            System.out.println("  File #1 ID is " + doc1.id() + ".");
+            System.out.println("  File #1 status is " + doc1.status() + ".");
+            System.out.println("  File #1 name is " + doc1.name() + ".");
             System.out.println("  File #1 was created on "
-                               + doc1.get("created_at") + ".");
-            System.out.println("  File #2 ID is " + doc2.get("id") + ".");
-            System.out.println("  File #2 type is " + doc2.get("type") + ".");
-            System.out.println("  File #2 status is " + doc2.get("status")
-                               + ".");
-            System.out.println("  File #2 name is " + doc2.get("name") + ".");
+                               + doc1.createdAt().toString() + ".");
+            System.out.println("  File #2 ID is " + doc2.id() + ".");
+            System.out.println("  File #2 status is " + doc2.status() + ".");
+            System.out.println("  File #2 name is " + doc2.name() + ".");
             System.out.println("  File #2 was created on "
-                               + doc2.get("created_at") + ".");
+                               + doc2.createdAt().toString() + ".");
         } catch (com.box.view.Exception e) {
             System.out.println("failed :(");
             System.out.println("  Error Code: " + e.getCode());
@@ -263,24 +237,16 @@ public class Examples {
         params.put("createdAfter", start);
 
         try {
-            Map<String, Object> documents = Document.list(params);
+            List<Document> documents = boxView.findDocuments(params);
 
-            @SuppressWarnings("unchecked")
-            Map<String, Object> documentCollection =
-                    (Map<String, Object>) documents.get("document_collection");
-            @SuppressWarnings("unchecked")
-            ArrayList<Map<String, Object>> entries =
-                            (ArrayList<Map<String, Object>>) documentCollection
-                                                             .get("entries");
-
-            Map<String, Object> doc1 = entries.get(0);
-            Map<String, Object> doc2 = entries.get(1);
+            Document doc1 = documents.get(0);
+            Document doc2 = documents.get(1);
 
             System.out.println("success :)");
-            System.out.println("  Status for file #1 (id=" + doc1.get("id")
-                               + ") is " + doc1.get("status") + ".");
-            System.out.println("  Status for file #2 (id=" + doc2.get("id")
-                               + ") is " + doc2.get("status") + ".");
+            System.out.println("  Status for file #1 (id=" + doc1.id()
+                               + ") is " + doc1.status() + ".");
+            System.out.println("  Status for file #2 (id=" + doc2.id()
+                               + ") is " + doc2.status() + ".");
         } catch (com.box.view.Exception e) {
             System.out.println("failed :(");
             System.out.println("  Error Code: " + e.getCode());
@@ -300,7 +266,7 @@ public class Examples {
         System.out.println("  Deleting... ");
 
         try {
-            Boolean deleted = Document.delete(document2.get("id").toString());
+            Boolean deleted = document2.delete();
 
             if (deleted) {
                 System.out.println("success :)");
@@ -326,23 +292,23 @@ public class Examples {
         System.out.println("Example #8 - Update the name of a file.");
         System.out.println("  Updating... ");
 
-        String id = document.get("id").toString();
-
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("name", "Updated Name");
 
         try {
+            Boolean updated = document.update(params);
 
-            Map<String, Object> metadata = Document.update(id, params);
-
-            System.out.println("success :)");
-            System.out.println("  File ID is " + metadata.get("id") + ".");
-            System.out.println("  File type is " + metadata.get("type") + ".");
-            System.out.println("  File status is " + metadata.get("status")
-                               + ".");
-            System.out.println("  File name is " + metadata.get("name") + ".");
-            System.out.println("  File was created on "
-                               + metadata.get("created_at") + ".");
+            if (updated) {
+                System.out.println("success :)");
+                System.out.println("  File ID is " + document.id() + ".");
+                System.out.println("  File status is " + document.status()
+                                   + ".");
+                System.out.println("  File name is " + document.name() + ".");
+                System.out.println("  File was created on "
+                                   + document.createdAt().toString() + ".");
+            } else {
+                System.out.println("failed :(");
+            }
         } catch (com.box.view.Exception e) {
             System.out.println("failed :(");
             System.out.println("  Error Code: " + e.getCode());
@@ -362,10 +328,8 @@ public class Examples {
                            + " format.");
         System.out.println("  Downloading... ");
 
-        String id = document.get("id").toString();
-
         try {
-            InputStream contents = Document.download(id);
+            InputStream contents = document.download();
             String filename = "./examples/files/test-original.doc";
             File file = new File(filename);
 
@@ -396,10 +360,8 @@ public class Examples {
         System.out.println("Example #10 - Download a file as a PDF.");
         System.out.println("  Downloading... ");
 
-        String id = document.get("id").toString();
-
         try {
-            InputStream contents = Document.download(id, "pdf");
+            InputStream contents = document.download("pdf");
             String filename = "./examples/files/test.pdf";
             File file = new File(filename);
 
@@ -430,10 +392,8 @@ public class Examples {
         System.out.println("Example #11 - Download a file as a zip.");
         System.out.println("  Downloading... ");
 
-        String id = document.get("id").toString();
-
         try {
-            InputStream contents = Document.download(id, "zip");
+            InputStream contents = document.download("zip");
             String filename = "./examples/files/test.zip";
             File file = new File(filename);
 
@@ -465,10 +425,8 @@ public class Examples {
                            + " file.");
         System.out.println("  Downloading... ");
 
-        String id = document.get("id").toString();
-
         try {
-            InputStream contents = Document.thumbnail(id, 16, 16);
+            InputStream contents = document.thumbnail(16, 16);
             String filename = "./examples/files/test-thumbnail.png";
             File file = new File(filename);
 
@@ -500,10 +458,8 @@ public class Examples {
                            + " file.");
         System.out.println("  Downloading... ");
 
-        String id = document.get("id").toString();
-
         try {
-            InputStream contents = Document.thumbnail(id, 250, 250);
+            InputStream contents = document.thumbnail(250, 250);
             String filename = "./examples/files/test-thumbnail-large.png";
             File file = new File(filename);
 
@@ -537,23 +493,18 @@ public class Examples {
         System.out.println("  Creating... ");
 
         try {
-            session = Session.create(document.get("id").toString());
-            System.out.println(session);
-
-            @SuppressWarnings("unchecked")
-            Map<String, Object> urls = (Map<String, Object>) session
-                                                             .get("urls");
+            session = document.createSession();
 
             System.out.println("success :)");
-            System.out.println("  Session id is " + session.get("id") + ".");
+            System.out.println("  Session id is " + session.id() + ".");
             System.out.println("  Session expires on "
-                               + session.get("expires_at") + ".");
-            System.out.println("  Session view URL is "
-                               + urls.get("view") + ".");
-            System.out.println("  Session assets URL is " + urls.get("assets")
+                               + session.expiresAt().toString() + ".");
+            System.out.println("  Session view URL is " + session.viewUrl()
+                               + ".");
+            System.out.println("  Session assets URL is " + session.assetsUrl()
                                + ".");
             System.out.println("  Session realtime URL is "
-                               + urls.get("realtime") + ".");
+                               + session.realtimeUrl() + ".");
         } catch (com.box.view.Exception e) {
             System.out.println("failed :(");
             System.out.println("  Error Code: " + e.getCode());
@@ -582,22 +533,18 @@ public class Examples {
         params.put("isTextSelectable", false);
 
         try {
-            session2 = Session.create(document.get("id").toString(), params);
-
-            @SuppressWarnings("unchecked")
-            Map<String, Object> urls = (Map<String, Object>) session2
-                                                             .get("urls");
+            session2 = document.createSession(params);
 
             System.out.println("success :)");
-            System.out.println("  Session id is " + session2.get("id") + ".");
+            System.out.println("  Session id is " + session.id() + ".");
             System.out.println("  Session expires on "
-                               + session2.get("expires_at") + ".");
-            System.out.println("  Session view URL is "
-                                   + urls.get("view") + ".");
-            System.out.println("  Session assets URL is " + urls.get("assets")
+                               + session2.expiresAt().toString() + ".");
+            System.out.println("  Session view URL is " + session.viewUrl()
+                               + ".");
+            System.out.println("  Session assets URL is " + session.assetsUrl()
                                    + ".");
             System.out.println("  Session realtime URL is "
-                               + urls.get("realtime") + ".");
+                               + session.realtimeUrl() + ".");
         } catch (com.box.view.Exception e) {
             System.out.println("failed :(");
             System.out.println("  Error Code: " + e.getCode());
@@ -617,7 +564,7 @@ public class Examples {
         System.out.println("  Deleting session #1... ");
 
         try {
-            Boolean deleted = Session.delete(session.get("id").toString());
+            Boolean deleted = session.delete();
 
             if (deleted) {
                 System.out.println("success :)");
@@ -634,7 +581,7 @@ public class Examples {
         System.out.println("  Deleting session #2... ");
 
         try {
-            Boolean deleted = Session.delete(session2.get("id").toString());
+            Boolean deleted = session2.delete();
 
             if (deleted) {
                 System.out.println("success :)");
@@ -661,7 +608,7 @@ public class Examples {
         System.out.println("  Deleting... ");
 
         try {
-            Boolean deleted = Document.delete(document.get("id").toString());
+            Boolean deleted = document.delete();
 
             if (deleted) {
                 System.out.println("success :)");

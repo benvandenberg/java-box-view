@@ -15,13 +15,11 @@ For more information about the Box View API, see the [API docs at developers.box
 
 * Java 1.6 or newer
 
-### Install with Maven
+### Install
 
-Coming soon
+First, get the library. You can download the JAR here: [put URL here]
 
-### Install without Maven
-
-Coming soon
+Add box-view.jar to your classpath.
 
 ## Getting Started
 
@@ -56,14 +54,10 @@ You can inspect the `examples/Examples.java` code to see each API call being use
 To start using `java-box-view` in your code, set your API key:
 
 ```java
-Client.setApiKey("YOUR_API_KEY");
+boxView = new Client("YOUR_API_KEY");
 ```
 
 And now you can start using the methods in `Document` and `Session`.
-
-## Tests
-
-Coming soon
 
 ## Support
 
@@ -71,10 +65,15 @@ Please use GitHub's issue tracker for API library support.
 
 ## Usage
 
+### Fields
+
+All fields are accessed using getters.
+You can find a list of these fields below in their respective sections.
+
 ### Errors
 
 Errors are handled by throwing exceptions.
-We throw instances of com.box.view.Exception.
+We throw instances of `com.box.view.Exception`.
 
 Note that any Box View API call can throw an exception.
 When making API calls, put them in a try/catch block.
@@ -82,17 +81,26 @@ You can see `examples/Examples.java` to see working code for each method using t
 
 ### Document
 
+#### Fields
+
+Field     | Getter
+--------- | ------
+id        | document.id()
+createdAt | document.createdAt()
+name      | document.name()
+status    | document.status()
+
 #### Upload from File
 
 https://developers.box.com/view/#post-documents
-To upload a document from a local file, use Document.upload().
+To upload a document from a local file, use `boxView.upload()`.
 Pass in a file resource, and also an optional key-value pair of other params.
-This function returns a key-value pair representing the metadata of the file.
+This function returns a `Document` object.
 
 ```java
 // without options
 File file = new File(filePath);
-Map<String, Object> metadata = Document.upload(file);
+Document document = boxView.upload(file);
 
 // with options
 File file = new File(filePath);
@@ -105,31 +113,30 @@ thumbnails.add("200x200");
 params.put("thumbnails", thumbnails);
 params.put("nonSvg", true);
 
-Map<String, Object> metadata = Document.upload(file, params);
+Document document = boxView.upload(file, params);
 ```
 
 The response looks like this:
 
 ```java
-{
-  type=document,
+com.box.view.Document@a21d23b[
   id=386bd56cd42a4256b9b25342d6ba986d,
-  status=queued,
+  createdAt=Fri Apr 17 22:21:17 PDT 2015,
   name=Sample File,
-  created_at=2015-03-03T03:04:46.143Z
-}
+  status=queued
+]
 ```
 
 #### Upload by URL
 
-https://developers.box.com/view/#post-documents  
-To upload a document by a URL, use `Document.upload()`.
+https://developers.box.com/view/#post-documents
+To upload a document by a URL, use `boxView.upload()`.
 Pass in the URL of the file you want to upload, and also an optional key-value pair of other params.
-This function returns a key-value pair representing the metadata of the file.
+This function returns a `Document` object.
 
 ```java
 // without options
-Map<String, Object> metadata = Document.upload(url);
+Document document = boxView.upload(url);
 
 // with options
 Map<String, Object> params = new HashMap<String, Object>();
@@ -140,54 +147,51 @@ thumbnails.add("200x200");
 params.put("thumbnails", thumbnails);
 params.put("nonSvg", true);
 
-Map<String, Object> metadata = Document.upload(url, params);
+Document document = boxView.upload(url, params);
 ```
 
 The response looks like this:
 
 ```java
-{
-  type=document,
+com.box.view.Document@a21d23b[
   id=386bd56cd42a4256b9b25342d6ba986d,
-  status=queued,
+  createdAt=Fri Apr 17 22:21:17 PDT 2015,
   name=Sample File,
-  created_at=2015-03-03T03:04:46.143Z
-}
+  status=queued
+]
 ```
 
-#### Metadata
+#### Get Document
 
-https://developers.box.com/view/#get-documents-id  
-To get a document's metadata, use `Document.metadata()`.
-Pass in the ID of the file you want to check the metadata of.
-This function returns a key-value pair representing the metadata of the file.
+https://developers.box.com/view/#get-documents-id
+To get a document, use `boxView.getDocument()`.
+Pass in the ID of the document you want to get.
+This function returns a `Document` object.
 
 ```java
-Map<String, Object> metadata = Document.metadata(documentId);
-```
+Document document = boxView.getDocument(documentId)`
 
 The response looks like this:
 
 ```java
-{
-  type=document,
+com.box.view.Document@a21d23b[
   id=386bd56cd42a4256b9b25342d6ba986d,
-  status=queued,
+  createdAt=Fri Apr 17 22:21:17 PDT 2015,
   name=Sample File,
-  created_at=2015-03-03T03:04:46.143Z
-}
+  status=queued
+]
 ```
 
-#### List
+#### Find
 
-https://developers.box.com/view/#get-documents  
-To get a list of documents you've uploaded, use `Document.list()`.
+https://developers.box.com/view/#get-documents
+To get a list of documents you've uploaded, use `boxView.findDocuments()`.
 Pass an optional key-value pair of parameters you want to filter by.
-This function returns an array of files matching the request.
+This function returns an array of `Document` objects matching the request.
 
 ```java
 // without options
-Map<String, Object> documents = Document.list();
+List<Document> documents = boxView.findDocuments();
 
 // with options
 Calendar start = Calendar.getInstance();
@@ -201,44 +205,37 @@ options.add("limit", 10);
 options.add("createdAfter", start.getTime());
 options.add("createdBefore", end.getTime());
 
-Map<String, Object> documents = Document.list(options);
+List<Document> documents = boxView.findDocuments(options);
 ```
 
 The response looks like this:
 
 ```java
-{
-  document_collection={
-    total_count=2.0,
-    entries=[
-      {
-        type=document,
-        id=4f6cede66dc14bd080a405b1377ec66d,
-        status=processing,
-        name=Sample File #2,
-        created_at=2015-03-03T03:19:55Z
-      },
-      {
-        type=document,
-        id=0d1e7cca94fa4db3b976f193f9f9b2d0,
-        status=done,
-        name=Sample File,
-        created_at=2015-03-03T03:19:55Z
-       }
-     ]
-   }
- }
+
+[
+  com.box.view.Document@a21d23b[
+    id=386bd56cd42a4256b9b25342d6ba986d,
+    createdAt=Fri Apr 17 22:21:17 PDT 2015,
+    name=Sample File,
+    status=queued
+  ],
+  com.box.view.Document@5d17c0eb[
+    id=0971e7674469406dba53254fcbb11d05,
+    createdAt=Fri Apr 17 22:21:17 PDT 2015,
+    name=Sample File #2,
+    status=queued
+  ]
+]
 ```
 
 #### Download
 
-https://developers.box.com/view/#get-documents-id-content  
-To download a document, use `Document.download()`.
-Pass in the ID of the file you want to download.
+https://developers.box.com/view/#get-documents-id-content
+To download a document, use `document.download()`.
 This function returns the contents of the downloaded file.
 
 ```java
-InputStream contents = Document.download(id);
+InputStream contents = document.download();
 String filename = "/files/new-file.doc";
 File file = new File(filename);
 
@@ -253,13 +250,13 @@ The response is an InputStream object representing the data of the file.
 
 #### Thumbnail
 
-https://developers.box.com/view/#get-documents-id-thumbnail  
-To download a document, use `Document.thumbnail()`.
-Pass in the ID of the file you want to download, and also the width and height in pixels of the thumbnail you want to download.
+https://developers.box.com/view/#get-documents-id-thumbnail
+To download a document, use `document.thumbnail()`.
+Pass in the width and height in pixels of the thumbnail you want to download.
 This function returns the contents of the downloaded thumbnail.
 
 ```java
-InputStream thumbnailContents = Document.thumbnail(id, 100, 100);
+InputStream thumbnailContents = document.thumbnail(100, 100);
 String filename = "/files/new-thumbnail.png";
 File file = new File(filename);
 
@@ -274,40 +271,39 @@ The response is an InputStream object representing the data of the file.
 
 #### Update
 
-https://developers.box.com/view/#put-documents-id  
-To update the metadata of a document, use `Document.update()`.
-Pass in the ID of the file you want to update, and also the fields you want to update.
-Right now, only the name field is supported.
-This function returns a key-value pair representing the metadata of the file.
+https://developers.box.com/view/#put-documents-id
+To update the metadata of a document, use `document.update()`.
+Pass in the fields you want to update.
+Right now, only the `name` field is supported.
+This function returns a boolean of whether the file was updated or not.
 
 ```java
 Map<String, Object> params = new Map<String, Object>();
 params.add("name", "Updated Name");
 
-Map<String, Object> metadata = Document.update(documentId, params);
+Boolean updated = document.update(params);
+
+if (updated) {
+    // do something
+} else {
+    // do something else
+}
 ```
 
 The response looks like this:
 
 ```java
-{
-  type=document,
-  id=386bd56cd42a4256b9b25342d6ba986d,
-  status=queued,
-  name=Sample File,
-  created_at=2015-03-03T03:04:46.143Z
-}
+true
 ```
 
 #### Delete
 
-https://developers.box.com/view/#delete-documents-id  
-To delete a document, use `Document.delete()`.
-Pass in the ID of the file you want to delete.
+https://developers.box.com/view/#delete-documents-id
+To delete a document, use `document.delete()`.
 This function returns a boolean of whether the file was deleted or not.
 
 ```java
-Boolean deleted = Document.delete(documentId);
+Boolean deleted = document.delete();
 
 if (deleted) {
     // do something
@@ -324,16 +320,27 @@ true
 
 ### Session
 
+#### Fields
+
+Field       | Getter
+----------- | ------
+id          | session.id()
+document    | session.document()
+expiresAt   | session.expiresAt()
+assetsUrl   | session.assetsUrl()
+realtimeUrl | session.realtimeUrl()
+viewUrl     | session.viewUrl()
+
 #### Create
 
-https://developers.box.com/view/#post-sessions  
-To create a session, use `Session.create()`.
-Pass in the ID of the file you want to create a session for, and also an optional key-value pair of other params.
-This function returns a key-value pair representing the metadata of the session.
+https://developers.box.com/view/#post-sessions
+To create a session, use `document.createSession()`.
+Pass in an optional key-value pair of other params.
+This function returns a `Session` object.
 
 ```java
 // without options
-Map<String, Object> session = Session.create(documentId);
+Session session = document.createSession();
 
 // with options
 Calendar expiresAt = Calendar.getInstance();
@@ -344,40 +351,32 @@ params.put("expiresAt", expiresAt.getTime());
 params.put("isDownloadable", true);
 params.put("isTextSelectable", false);
 
-Map<String, Object> session = Session.create(documentId, params);
+Session session = document.createSession(params);
 ```
 
 The response looks like this:
 
 ```java
-{
-  type=session,
-  id=31d04397460c48f2881e84a2928cf869,
-  document={
-    type=document,
-    id=6649388e766b439c9ddbd78d0e4f924c,
-    status=done,
-    name=Updated Name,
-    created_at=2015-03-03T03:30:33Z
-  },
-  expires_at=2015-03-03T04:30:50.434Z,
-  urls={
+com.box.view.Session@3f406eb6[
+  id=d1b8c35a69da43fbb2e978e99589114a,
+  document=com.box.view.Document@5d17c0eb,
+  expiresAt=Fri Apr 17 22:21:17 PDT 2015,
+  urls=[
     view=https://view-api.box.com/1/sessions/31d04397460c48f2881e84a2928cf869/view,
     assets=https://view-api.box.com/1/sessions/31d04397460c48f2881e84a2928cf869/assets/,
     realtime=https://view-api.box.com/sse/31d04397460c48f2881e84a2928cf869
-  }
-}
+  ]
+]
 ```
 
 #### Delete
 
-https://developers.box.com/view/#delete-sessions-id  
-To delete a session, use `Session.delete()`.
-Pass in the ID of the session you want to delete.
+https://developers.box.com/view/#delete-sessions-id
+To delete a session, use `session.delete()`.
 This function returns a boolean of whether the session was deleted or not.
 
 ```java
-Boolean deleted = Session.delete(sessionId);
+Boolean deleted = session.delete();
 
 if (deleted) {
     // do something
