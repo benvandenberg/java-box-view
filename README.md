@@ -170,6 +170,7 @@ This function returns a `Document` object.
 
 ```java
 Document document = boxView.getDocument(documentId)`
+```
 
 The response looks like this:
 
