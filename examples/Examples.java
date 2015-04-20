@@ -11,6 +11,7 @@ import java.util.Map;
 
 import org.apache.commons.io.FileUtils;
 
+import com.box.view.BoxViewException;
 import com.box.view.Client;
 import com.box.view.Document;
 import com.box.view.Session;
@@ -71,7 +72,7 @@ public class Examples {
 
             System.out.println("success :)");
             System.out.println("  ID is " + document.id() + ".");
-        } catch (com.box.view.Exception e) {
+        } catch (BoxViewException e) {
             System.out.println("failed :(");
             System.out.println("  Error Code: " + e.getCode());
             System.out.println("  Error Message: " + e.getMessage());
@@ -102,7 +103,7 @@ public class Examples {
             System.out.println("  File was created on "
                                + documentDuplicate.createdAt().toString()
                                + ".");
-        } catch (com.box.view.Exception e) {
+        } catch (BoxViewException e) {
             System.out.println("failed :(");
             System.out.println("  Error Code: " + e.getCode());
             System.out.println("  Error Message: " + e.getMessage());
@@ -136,7 +137,7 @@ public class Examples {
 
             System.out.println("success :)");
             System.out.println("  ID is " + document2.id() + ".");
-        } catch (com.box.view.Exception e) {
+        } catch (BoxViewException e) {
             System.out.println("failed :(");
             System.out.println("  Error Code: " + e.getCode());
             System.out.println("  Error Message: " + e.getMessage());
@@ -167,7 +168,7 @@ public class Examples {
             System.out.println("  File was created on "
                                + documentDuplicate.createdAt().toString()
                                + ".");
-        } catch (com.box.view.Exception e) {
+        } catch (BoxViewException e) {
             System.out.println("failed :(");
             System.out.println("  Error Code: " + e.getCode());
             System.out.println("  Error Message: " + e.getMessage());
@@ -206,7 +207,7 @@ public class Examples {
             System.out.println("  File #2 name is " + doc2.name() + ".");
             System.out.println("  File #2 was created on "
                                + doc2.createdAt().toString() + ".");
-        } catch (com.box.view.Exception e) {
+        } catch (BoxViewException e) {
             System.out.println("failed :(");
             System.out.println("  Error Code: " + e.getCode());
             System.out.println("  Error Message: " + e.getMessage());
@@ -247,7 +248,7 @@ public class Examples {
                                + ") is " + doc1.status() + ".");
             System.out.println("  Status for file #2 (id=" + doc2.id()
                                + ") is " + doc2.status() + ".");
-        } catch (com.box.view.Exception e) {
+        } catch (BoxViewException e) {
             System.out.println("failed :(");
             System.out.println("  Error Code: " + e.getCode());
             System.out.println("  Error Message: " + e.getMessage());
@@ -274,7 +275,7 @@ public class Examples {
             } else {
                 System.out.println("failed :(");
             }
-        } catch (com.box.view.Exception e) {
+        } catch (BoxViewException e) {
             System.out.println("failed :(");
             System.out.println("  Error Code: " + e.getCode());
             System.out.println("  Error Message: " + e.getMessage());
@@ -309,7 +310,7 @@ public class Examples {
             } else {
                 System.out.println("failed :(");
             }
-        } catch (com.box.view.Exception e) {
+        } catch (BoxViewException e) {
             System.out.println("failed :(");
             System.out.println("  Error Code: " + e.getCode());
             System.out.println("  Error Message: " + e.getMessage());
@@ -342,7 +343,7 @@ public class Examples {
                 System.out.println("failed :(");
                 System.out.println("  Error Message: " + e.getMessage());
             }
-        } catch (com.box.view.Exception e) {
+        } catch (BoxViewException e) {
             System.out.println("failed :(");
             System.out.println("  Error Code: " + e.getCode());
             System.out.println("  Error Message: " + e.getMessage());
@@ -374,7 +375,7 @@ public class Examples {
 
             System.out.println("success :)");
             System.out.println("  File was downloaded to " + filename + ".");
-        } catch (com.box.view.Exception e) {
+        } catch (BoxViewException e) {
             System.out.println("failed :(");
             System.out.println("  Error Code: " + e.getCode());
             System.out.println("  Error Message: " + e.getMessage());
@@ -406,7 +407,7 @@ public class Examples {
 
             System.out.println("success :)");
             System.out.println("  File was downloaded to " + filename + ".");
-        } catch (com.box.view.Exception e) {
+        } catch (BoxViewException e) {
             System.out.println("failed :(");
             System.out.println("  Error Code: " + e.getCode());
             System.out.println("  Error Message: " + e.getMessage());
@@ -439,7 +440,7 @@ public class Examples {
 
             System.out.println("success :)");
             System.out.println("  File was downloaded to " + filename + ".");
-        } catch (com.box.view.Exception e) {
+        } catch (BoxViewException e) {
             System.out.println("failed :(");
             System.out.println("  Error Code: " + e.getCode());
             System.out.println("  Error Message: " + e.getMessage());
@@ -472,7 +473,7 @@ public class Examples {
 
             System.out.println("success :)");
             System.out.println("  File was downloaded to " + filename + ".");
-        } catch (com.box.view.Exception e) {
+        } catch (BoxViewException e) {
             System.out.println("failed :(");
             System.out.println("  Error Code: " + e.getCode());
             System.out.println("  Error Message: " + e.getMessage());
@@ -505,7 +506,7 @@ public class Examples {
                                + ".");
             System.out.println("  Session realtime URL is "
                                + session.realtimeUrl() + ".");
-        } catch (com.box.view.Exception e) {
+        } catch (BoxViewException e) {
             System.out.println("failed :(");
             System.out.println("  Error Code: " + e.getCode());
             System.out.println("  Error Message: " + e.getMessage());
@@ -545,7 +546,10 @@ public class Examples {
                                    + ".");
             System.out.println("  Session realtime URL is "
                                + session.realtimeUrl() + ".");
-        } catch (com.box.view.Exception e) {
+        } catch (ParseException e) {
+            System.out.println("failed :(");
+            System.out.println("  Error Message: " + e.getMessage());
+        } catch (BoxViewException e) {
             System.out.println("failed :(");
             System.out.println("  Error Code: " + e.getCode());
             System.out.println("  Error Message: " + e.getMessage());
@@ -572,7 +576,7 @@ public class Examples {
             } else {
                 System.out.println("failed :(");
             }
-        } catch (com.box.view.Exception e) {
+        } catch (BoxViewException e) {
             System.out.println("failed :(");
             System.out.println("  Error Code: " + e.getCode());
             System.out.println("  Error Message: " + e.getMessage());
@@ -589,7 +593,7 @@ public class Examples {
             } else {
                 System.out.println("failed :(");
             }
-        } catch (com.box.view.Exception e) {
+        } catch (BoxViewException e) {
             System.out.println("failed :(");
             System.out.println("  Error Code: " + e.getCode());
             System.out.println("  Error Message: " + e.getMessage());
@@ -616,7 +620,7 @@ public class Examples {
             } else {
                 System.out.println("failed :(");
             }
-        } catch (com.box.view.Exception e) {
+        } catch (BoxViewException e) {
             System.out.println("failed :(");
             System.out.println("  Error Code: " + e.getCode());
             System.out.println("  Error Message: " + e.getMessage());

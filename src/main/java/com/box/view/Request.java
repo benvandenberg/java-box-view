@@ -35,21 +35,19 @@ public class Request {
     /**
      * Request error codes.
      */
-    public static final String BAD_REQUEST_ERROR            = "bad_request";
-    public static final String HTTP_CLIENT_ERROR
-                                                          = "http_client_error";
+    public static final String BAD_REQUEST_ERROR        = "bad_request";
+    public static final String HTTP_CLIENT_ERROR        = "http_client_error";
     public static final String INVALID_HTTP_METHOD_ERROR
                                                         = "invalid_http_method";
-    public static final String INVALID_URI_ERROR            = "invalid_uri";
+    public static final String INVALID_URI_ERROR        = "invalid_uri";
     public static final String JSON_RESPONSE_ERROR
                                             = "server_response_not_valid_json";
-    public static final String METHOD_NOT_ALLOWED_ERROR  = "method_not_allowed";
-    public static final String NOT_FOUND_ERROR              = "not_found";
-    public static final String REQUEST_TIMEOUT_ERROR        = "request_timeout";
-    public static final String SERVER_ERROR                 = "server_error";
-    public static final String TOO_MANY_REQUESTS_ERROR
-                                                          = "too_many_requests";
-    public static final String UNAUTHORIZED_ERROR           = "unauthorized";
+    public static final String METHOD_NOT_ALLOWED_ERROR = "method_not_allowed";
+    public static final String NOT_FOUND_ERROR          = "not_found";
+    public static final String REQUEST_TIMEOUT_ERROR    = "request_timeout";
+    public static final String SERVER_ERROR             = "server_error";
+    public static final String TOO_MANY_REQUESTS_ERROR  = "too_many_requests";
+    public static final String UNAUTHORIZED_ERROR       = "unauthorized";
     public static final String UNSUPPORTED_MEDIA_TYPE_ERROR
                                                      = "unsupported_media_type";
 
@@ -59,7 +57,7 @@ public class Request {
     public static final String PROTOCOL = "https";
 
     /**
-     * The default host
+     * The default host.
      */
     public static final String HOST = "view-api.box.com";
 
@@ -93,7 +91,7 @@ public class Request {
     /**
      * Set the API key.
      *
-     * @param string apiKey The API key.
+     * @param apiKey The API key.
      */
     public Request(String apiKey) {
         this.apiKey = apiKey;
@@ -102,23 +100,20 @@ public class Request {
     /**
      * Send an HTTP request and return an HttpEntity.
      *
-     * @param string path The path to add after the base path.
-     * @param object|null getParams A key-value pair of GET params to be added
-     *                              to the URL.
-     * @param object|null postParams A key-value pair of POST params to be sent
-     *                               in the body.
-     * @param object|null requestOptions A key-value pair of request options
-     *                                   that may modify the way the request is
-     *                                   made.
+     * @param path The path to add after the base path.
+     * @param getParams A key-value pair of GET params to be added to the URL.
+     * @param postParams A key-value pair of POST params to be sent in the body.
+     * @param requestOptions A key-value pair of request options that may modify
+     *                       the way the request is made.
      *
-     * @return string The raw response string.
-     * @throws Exception
+     * @return The HttpEntity from the response.
+     * @throws BoxViewException
      */
     public HttpEntity requestHttpEntity(String path,
                                         Map<String, Object> getParams,
                                         Map<String, Object> postParams,
                                         Map<String, Object> requestOptions)
-           throws Exception {
+           throws BoxViewException {
         HttpUriRequest request = createRequest(path,
                                                getParams,
                                                postParams,
@@ -131,23 +126,20 @@ public class Request {
     /**
      * Send an HTTP request and return a JSON object.
      *
-     * @param string path The path to add after the base path.
-     * @param object|null getParams A key-value pair of GET params to be added
-     *                              to the URL.
-     * @param object|null postParams A key-value pair of POST params to be sent
-     *                               in the body.
-     * @param object|null requestOptions A key-value pair of request options
-     *                                   that may modify the way the request is
-     *                                   made.
+     * @param path The path to add after the base path.
+     * @param getParams A key-value pair of GET params to be added to the URL.
+     * @param postParams A key-value pair of POST params to be sent in the body.
+     * @param requestOptions A key-value pair of request options that may modify
+     *                       the way the request is made.
      *
-     * @return object A key-value pair decoded from JSON.
-     * @throws Exception
+     * @return A key-value pair decoded from JSON.
+     * @throws BoxViewException
      */
     public Map<String, Object> requestJson(String path,
                                            Map<String, Object> getParams,
                                            Map<String, Object> postParams,
                                            Map<String, Object> requestOptions)
-           throws Exception {
+           throws BoxViewException {
         HttpUriRequest request = createRequest(path,
                                                getParams,
                                                postParams,
@@ -160,20 +152,20 @@ public class Request {
     /**
      * Handle an error. We handle errors by throwing an exception.
      *
-     * @param string error An error code representing the error
+     * @param error An error code representing the error
      *                     (use_underscore_separators).
-     * @param string|null message The error message.
-     * @param HttpUriRequest|null request The HTTP request object.
-     * @param HttpResponse|null response The HTTP response object.
+     * @param message The error message.
+     * @param request The HTTP request object.
+     * @param response The HTTP response object.
      *
      * @return void
-     * @throws Exception
+     * @throws BoxViewException
      */
     protected static void error(String error,
                                 String message,
                                 HttpUriRequest request,
                                 HttpResponse response)
-              throws Exception {
+              throws BoxViewException {
         if (request != null) {
             URI uri = request.getURI();
 
@@ -212,29 +204,26 @@ public class Request {
             message += "Response: " + responseBody + "\n";
         }
 
-        throw new Exception(message, error);
+        throw new BoxViewException(message, error);
     }
 
     /**
      * Prepare and create an HTTP request object.
      *
-     * @param string path The path to add after the base path.
-     * @param object|null getParams A key-value pair of GET params to be added
-     *                              to the URL.
-     * @param object|null postParams A key-value pair of POST params to be sent
-     *                               in the body.
-     * @param object|null requestOptions A key-value pair of request options
-     *                                   that may modify the way the request is
-     *                                   made.
+     * @param path The path to add after the base path.
+     * @param getParams A key-value pair of GET params to be added to the URL.
+     * @param postParams A key-value pair of POST params to be sent in the body.
+     * @param requestOptions A key-value pair of request options that may modify
+     *                       the way the request is made.
      *
-     * @return HttpUriRequest The HTTP request object.
-     * @throws Exception
+     * @return The HTTP request object.
+     * @throws BoxViewException
      */
     private HttpUriRequest createRequest(String path,
                                          Map<String, Object> getParams,
                                          Map<String, Object> postParams,
                                          Map<String, Object> requestOptions)
-            throws Exception {
+            throws BoxViewException {
         if (getParams == null)  getParams  = new HashMap<String, Object>();
         if (postParams == null) postParams = new HashMap<String, Object>();
 
@@ -290,11 +279,10 @@ public class Request {
     /**
      * Get a timeout for the request.
      *
-     * @param object|null requestOptions A key-value pair of request options
-     *                                   that may modify the way the request is
-     *                                   made.
+     * @param requestOptions A key-value pair of request options that may modify
+     *                       the way the request is made.
      *
-     * @return Integer The maximum number of seconds to retry for..
+     * @return The maximum number of seconds to retry for..
      */
     private Integer createTimeout(Map<String, Object> requestOptions) {
         timestampRequested = System.currentTimeMillis() * 1000;
@@ -309,15 +297,14 @@ public class Request {
      * Execute a request to the server and return the response, while retrying
      * based on any Retry-After headers that are sent back.
      *
-     * @param HttpUriRequest request The HTTP request object to send, and
-     *                               possibly retry.
-     * @param int timeout The maximum number of seconds to retry for.
+     * @param request The HTTP request object to send, and possibly retry.
+     * @param timeout The maximum number of seconds to retry for.
      *
-     * @return HttpResponse The HttpResponse response object.
-     * @throws Exception
+     * @return The HttpResponse response object.
+     * @throws BoxViewException
      */
     private HttpResponse execute(HttpUriRequest request, Integer timeout)
-            throws Exception {
+            throws BoxViewException {
         HttpClient client     = getHttpClient();
         HttpResponse response = null;
 
@@ -356,7 +343,7 @@ public class Request {
     /**
      * Get a new HttpClient instance using sensible defaults.
      *
-     * @return HttpClient A new HttpClient instance.
+     * @return A new HttpClient instance.
      */
     private HttpClient getHttpClient() {
         RequestConfig config = RequestConfig.custom()
@@ -372,20 +359,20 @@ public class Request {
     /**
      * Create an HTTP request object.
      *
-     * @param String method The HTTP method to call.
-     * @param URI uri The URI to request to.
-     * @param HttpEntity requestEntity The body for POST/PUT operations.
-     * @param object requestOptions A key-value pair of request options that may
-     *                              modify the way the request is made.
+     * @param method The HTTP method to call.
+     * @param uri The URI to request to.
+     * @param requestEntity The body for POST/PUT operations.
+     * @param requestOptions A key-value pair of request options that may modify
+     *                       the way the request is made.
      *
-     * @throws Exception
-     * @return HttpUriRequest The HTTP request object.
+     * @throws BoxViewException
+     * @return The HTTP request object.
      */
     private HttpUriRequest getRequest(String method,
                                       URI uri,
                                       HttpEntity requestEntity,
                                       Map<String, Object> requestOptions)
-            throws Exception {
+            throws BoxViewException {
         HttpUriRequest request = null;
 
         if (method == "GET") {
@@ -430,18 +417,17 @@ public class Request {
     /**
      * Create a URI, given a hostname, path, and GET params.
 
-     * @param String hostName The hostname to make the request to.
-     * @param String path The path to make the request to.
-     * @param object|null getParams A key-value pair of POST params to be sent
-     *                              in the body.
+     * @param hostName The hostname to make the request to.
+     * @param path The path to make the request to.
+     * @param getParams A key-value pair of POST params to be sent in the body.
      *
-     * @return URI The URI to make the request to.
-     * @throws Exception
+     * @return The URI to make the request to.
+     * @throws BoxViewException
      */
     private URI getUri(String hostName,
                        String path,
                        Map<String, Object> getParams)
-            throws Exception {
+            throws BoxViewException {
         URIBuilder uriBuilder = new URIBuilder()
                                 .setScheme(PROTOCOL)
                                 .setHost(hostName)
@@ -469,9 +455,9 @@ public class Request {
      * Check if there is an HTTP error, and returns a brief error description if
      * there is.
      *
-     * @param int httpCode The HTTP code returned by the API server.
+     * @param httpCode The HTTP code returned by the API server.
      *
-     * @return string|null Brief error description.
+     * @return Brief error description.
      */
     private static String handleHttpError(Integer httpCode) {
         Map<Integer, String> errorCodes = new HashMap<Integer, String>();
@@ -498,16 +484,16 @@ public class Request {
      * checking anything. JSON responses are decoded and then checked for any
      * errors.
      *
-     * @param HttpResponse response The HTTP response object.
-     * @param HttpUriRequest The HTTP request object.
+     * @param response The HTTP response object.
+     * @param The HTTP request object.
      *
-     * @return object A key-value pair decoded from JSON.
-     * @throws Exception
+     * @return A key-value pair decoded from JSON.
+     * @throws BoxViewException
      */
     private static Map<String, Object> handleJsonResponse(
                                                         HttpResponse response,
                                                         HttpUriRequest request)
-                   throws Exception {
+                   throws BoxViewException {
         String body = null;
 
         try {
@@ -539,17 +525,17 @@ public class Request {
     /**
      * Handle a request error.
      *
-     * @param HttpUriRequest request The HTTP request object.
-     * @param HttpResponse response The HTTP response object.
-     * @param Exception e Any error exception that triggered this call.
+     * @param request The HTTP request object.
+     * @param response The HTTP response object.
+     * @param e Any error exception that triggered this call.
      *
      * @return void
-     * @throws Exception
+     * @throws BoxViewException
      */
     private static void handleRequestError(HttpUriRequest request,
                                            HttpResponse response,
                                            java.lang.Exception e)
-                   throws Exception {
+                   throws BoxViewException {
         Integer statusCode = response.getStatusLine().getStatusCode();
         String error       = handleHttpError(statusCode);
         String message     = "Server Error";

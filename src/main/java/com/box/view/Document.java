@@ -15,32 +15,6 @@ import org.apache.http.HttpEntity;
 /**
  * Provide access to the Box View Document API. The Document API is used for
  * uploading, checking status, and deleting documents.
- *
- * Document objects have the following fields:
- *   - string 'id' The document ID.
- *   - string|Date 'createdAt' The date the document was created, formatted as
- *                        RFC 3339.
- *   - string 'name' The document title.
- *   - string 'status' The document status, which can be 'queued', 'processing',
- *                     'done', or 'error'.
- *
- * Only the following fields can be updated:
- *   - string 'name' The document title.
- *
- * When finding documents, the following parameters can be set:
- *   - int|null 'limit' The number of documents to return.
- *   - string|Date|null 'createdBefore' Upper date limit to filter by.
- *   - string|Date|null 'createdAfter' Lower date limit to filter by.
- *
- * When uploading a file, the following parameters can be set:
- *   - string|null 'name' Override the filename of the file being uploaded.
- *   - string[]|string|null 'thumbnails' An array of dimensions in pixels, with
- *                                       each dimension formatted as
- *                                       [width]x[height], this can also be a
- *                                       comma-separated string.
- *   - bool|null 'nonSvg' Create a second version of the file that doesn't use
- *                        SVG, for users with browsers that don't support SVG?
- *
  */
 public class Document extends Base {
     /**
@@ -61,7 +35,6 @@ public class Document extends Base {
 
     /**
      * The fields that can be updated on a document.
-     * @var array
      */
     public static final String[] updateableFields = {"name"};
 
@@ -89,15 +62,15 @@ public class Document extends Base {
     /**
      * Instantiate the document.
      *
-     * @param Client client The client instance to make requests from.
-     * @param object data A key-value pair to instantiate the object with. Use
-     *                    the following values:
-     *                      - string 'id' The document ID.
-     *                      - string|Date 'createdAt' The date the document was
-     *                        created, formatted as RFC 3339.
-     *                      - string 'name' The document title.
-     *                      - string 'status' The document status, which can be
-     *                        'queued', 'processing', 'done', or 'error'.
+     * @param client The client instance to make requests from.
+     * @param data A key-value pair to instantiate the object with. Use the
+     *             following values:
+     *               - string 'id' The document ID.
+     *               - string|Date 'createdAt' The date the document was
+     *                 created.
+     *               - string 'name' The document title.
+     *               - string 'status' The document status, which can be
+     *                 'queued', 'processing', 'done', or 'error'.
      */
     public Document(Client client, Map<String, Object>data) {
         this.client = client;
@@ -109,7 +82,7 @@ public class Document extends Base {
     /**
      * Get the date the document was created, formatted as RFC 3339.
      *
-     * @return Date The date the document was created, formatted as RFC 3339.
+     * @return The date the document was created, formatted as RFC 3339.
      */
     public Date createdAt() {
         return createdAt;
@@ -118,7 +91,7 @@ public class Document extends Base {
     /**
      * Get the document ID.
      *
-     * @return string The document ID.
+     * @return The document ID.
      */
     public String id() {
         return id;
@@ -127,7 +100,7 @@ public class Document extends Base {
     /**
      * Get the document title.
      *
-     * @return string The document title.
+     * @return The document title.
      */
     public String name() {
         return name;
@@ -136,7 +109,7 @@ public class Document extends Base {
     /**
      * Get the document status.
      *
-     * @return string The document title.
+     * @return The document title.
      */
     public String status() {
         return status;
@@ -145,42 +118,44 @@ public class Document extends Base {
     /**
      * Create a session for a specific document.
      *
-     * @return Session A new session instance.
-     * @throws Exception
+     * @return A new session instance.
+     * @throws BoxViewException
      */
-    public Session createSession() throws Exception {
+    public Session createSession() throws BoxViewException {
         return Session.create(client, id);
     }
 
     /**
      * Create a session for a specific document.
      *
-     * @param object|null params A key-value pair of options relating to the new
-     *                           session. None are necessary; all are optional.
-     *                           Use the following options:
-     *                             - int|null 'duration' The number of minutes
-     *                               for the session to last.
-     *                             - string|Date|null 'expiresAt' When the
-     *                               session should expire.
-     *                             - bool|null 'isDownloadable' Should the user
-     *                               be allowed to download the original file?
-     *                             - bool|null 'isTextSelectable' Should the
-     *                               user be allowed to select text?
+     * @param params A key-value pair of options relating to the new session.
+     *               None are necessary; all are optional. Use the following
+     *               options:
+     *                 - int|null 'duration' The number of minutes for the
+     *                   session to last.
+     *                 - string|Date|null 'expiresAt' When the session should
+     *                   expire.
+     *                 - bool|null 'isDownloadable' Should the user be allowed
+     *                   to download the original file?
+     *                 - bool|null 'isTextSelectable' Should the user be allowed
+     *                   to select text?
      *
-     * @return Session A new session instance.
-     * @throws Exception
+     * @return A new session instance.
+     * @throws BoxViewException
+     * @throws ParseException
      */
-    public Session createSession(Map<String, Object> params) throws Exception {
+    public Session createSession(Map<String, Object> params)
+                   throws BoxViewException, ParseException {
         return Session.create(client, id, params);
     }
 
     /**
      * Delete a file.
      *
-     * @return bool Was the file deleted?
-     * @throws Exception
+     * @return Was the file deleted?
+     * @throws BoxViewException
      */
-    public Boolean delete() throws Exception {
+    public Boolean delete() throws BoxViewException {
         Map<String, Object> options = new HashMap<String, Object>();
         options.put("httpMethod", "DELETE");
         options.put("rawResponse", true);
@@ -198,10 +173,10 @@ public class Document extends Base {
     /**
      * Download a file using the original extension.
      *
-     * @return string The contents of the downloaded file.
-     * @throws Exception
+     * @return The contents of the downloaded file.
+     * @throws BoxViewException
      */
-    public InputStream download() throws Exception {
+    public InputStream download() throws BoxViewException {
         Map<String, Object> options = new HashMap<String, Object>();
         options.put("rawResponse", true);
 
@@ -224,15 +199,14 @@ public class Document extends Base {
     /**
      * Download a file using a specific extension.
      *
-     * @param string extension The extension to download the file in, which can
-     *                         be pdf or zip. If no extension is provided, the
-     *                         file will be downloaded using the original
-     *                         extension.
+     * @param extension The extension to download the file in, which can be pdf
+     *                  or zip. If no extension is provided, the file will be
+     *                  downloaded using the original extension.
      *
-     * @return string The contents of the downloaded file.
-     * @throws Exception
+     * @return The contents of the downloaded file.
+     * @throws BoxViewException
      */
-    public InputStream download(String extension) throws Exception {
+    public InputStream download(String extension) throws BoxViewException {
         String path = Document.path + "/" + id + "/content." + extension;
 
         Map<String, Object> options = new HashMap<String, Object>();
@@ -257,14 +231,14 @@ public class Document extends Base {
     /**
      * Download a thumbnail of a specific size for a file.
      *
-     * @param int width The width of the thumbnail in pixels.
-     * @param int height The height of the thumbnail in pixels.
+     * @param width The width of the thumbnail in pixels.
+     * @param height The height of the thumbnail in pixels.
      *
-     * @return string The contents of the downloaded thumbnail.
-     * @throws Exception
+     * @return The contents of the downloaded thumbnail.
+     * @throws BoxViewException
      */
     public InputStream thumbnail(Integer width, Integer height)
-           throws Exception {
+           throws BoxViewException {
         Map<String, Object> getParams = new HashMap<String, Object>();
         getParams.put("height", height.toString());
         getParams.put("width", width.toString());
@@ -291,13 +265,12 @@ public class Document extends Base {
     /**
      * Update specific fields for the metadata of a file .
      *
-     * @param object fields A key-value pair of the fields to update on the
-     *                      file.
+     * @param fields A key-value pair of the fields to update on the file.
      *
-     * @return bool Was the file updated?
-     * @throws Exception
+     * @return Was the file updated?
+     * @throws BoxViewException
      */
-    public Boolean update(Map<String, Object> fields) throws Exception {
+    public Boolean update(Map<String, Object> fields) throws BoxViewException {
         Map<String, Object> postParams = new HashMap<String, Object>();
 
         for (String field : updateableFields) {
@@ -322,38 +295,36 @@ public class Document extends Base {
     /**
      * Get a list of all documents.
      *
-     * @param Client client The client instance to make requests from.
+     * @param client The client instance to make requests from.
      *
-     * @return array An array containing instances of all documents.
-     * @throws Exception
+     * @return An array containing instances of all documents.
+     * @throws BoxViewException
      * @throws ParseException
      */
     public static List<Document> find(Client client)
-                  throws Exception, ParseException {
+                  throws BoxViewException, ParseException {
         return find(client, new HashMap<String, Object>());
     }
 
     /**
      * Get a list of all documents that meet the provided criteria.
      *
-     * @param Client client The client instance to make requests from.
-     * @param object params A key-value pair to filter the list of all documents
-     *                      uploaded. None are necessary; all are optional. Use
-     *                      the following options:
-     *                        - integer|null 'limit' The number of documents to
-     *                          to return.
-     *                        - string|Date|null 'createdBefore' Upper date
-     *                          limit to filter by.
-     *                        - string|Date|null 'createdAfter' Lower date limit
-     *                          to filter by.
+     * @param client The client instance to make requests from.
+     * @param params A key-value pair to filter the list of all documents
+     *               uploaded. None are necessary; all are optional. Use the
+     *               following options:
+     *                 - int|null 'limit' The number of documents to return.
+     *                 - string|Date|null 'createdBefore' Upper date limit to
+     *                   filter by.
+     *                 - string|Date|null 'createdAfter' Lower date limit to
+     *                   filter by.
      *
-     * @return array An array containing document instances matching the
-     *               request.
-     * @throws Exception
+     * @return An array containing document instances matching the request.
+     * @throws BoxViewException
      */
     @SuppressWarnings("unchecked")
     public static List<Document> find(Client client, Map<String, Object> params)
-                  throws Exception, ParseException {
+                  throws BoxViewException, ParseException {
         Map<String, Object> getParams = new HashMap<String, Object>();
 
         if (params.containsKey("limit")
@@ -419,14 +390,14 @@ public class Document extends Base {
     /**
      * Get specific fields from the metadata of a file.
      *
-     * @param Client client The client instance to make requests from.
-     * @param string id The ID of the file to check.
+     * @param client The client instance to make requests from.
+     * @param id The ID of the file to check.
      *
-     * @return Document A document instance using data from the API.
-     * @throws Exception
+     * @return A document instance using data from the API.
+     * @throws BoxViewException
      */
     public static Document get(Client client, String id)
-                  throws Exception {
+                  throws BoxViewException {
         String[] fields   = {"id", "created_at", "name", "status"};
         StringBuilder sb  = new StringBuilder();
 
@@ -450,41 +421,42 @@ public class Document extends Base {
     /**
      * Upload a local file and return a new document instance.
      *
-     * @param Client client The client instance to make requests from.
-     * @param File file The file resource to upload.
+     * @param client The client instance to make requests from.
+     * @param file The file resource to upload.
      *
-     * @return Document A new document instance.
-     * @throws Exception
+     * @return A new document instance.
+     * @throws BoxViewException
      */
-    public static Document upload(Client client, File file) throws Exception {
+    public static Document upload(Client client, File file)
+                  throws BoxViewException {
         return upload(client, file, new HashMap<String, Object>());
     }
 
     /**
      * Upload a local file and return a new document instance.
      *
-     * @param Client client The client instance to make requests from.
-     * @param File file The file resource to upload.
-     * @param object|null params An key-value pair of options relating to the
-     *                           file upload. None are necessary; all are
-     *                           optional. Us the following options:
-     *                             - string|null 'name' Override the filename of
-     *                               the file being uploaded.
-     *                             - string[]|string|null 'thumbnails' An array
-     *                               of dimensions in pixels, with each
-     *                               dimension formatted as [width]x[height],
-     *                               this can also be a comma-separated string.
-     *                             - bool|null 'nonSvg' Create a second version
-     *                               of the file that doesn't use SVG, for users
-     *                               with browsers that don't support SVG?
+     * @param client The client instance to make requests from.
+     * @param file The file resource to upload.
+     * @param params An key-value pair of options relating to the file upload.
+     *               None are necessary; all are optional. Use the following
+     *               options:
+     *                 - string|null 'name' Override the filename of the file
+     *                   being uploaded.
+     *                 - string[]|string|null 'thumbnails' An array of
+     *                   dimensions in pixels, with each dimension formatted as
+     *                   [width]x[height], this can also be a comma-separated
+     *                   string.
+     *                 - bool|null 'nonSvg' Create a second version of the file
+     *                   that doesn't use SVG, for users with browsers that
+     *                   don't support SVG?
      *
-     * @return Document A new document instance.
-     * @throws Exception
+     * @return A new document instance.
+     * @throws BoxViewException
      */
     public static Document upload(Client client,
                                   File file,
                                   Map<String, Object> params)
-                  throws Exception {
+                  throws BoxViewException {
         Map<String, Object> options = new HashMap<String, Object>();
         options.put("file", file);
         options.put("host", FILE_UPLOAD_HOST);
@@ -495,41 +467,42 @@ public class Document extends Base {
     /**
      * Upload a file by URL and return a new document instance.
      *
-     * @param Client client The client instance to make requests from.
-     * @param String url The URL of the file to upload.
+     * @param client The client instance to make requests from.
+     * @param url The URL of the file to upload.
      *
-     * @return Document A new document instance.
-     * @throws Exception
+     * @return A new document instance.
+     * @throws BoxViewException
      */
-    public static Document upload(Client client, String url) throws Exception {
+    public static Document upload(Client client, String url)
+                  throws BoxViewException {
         return upload(client, url, new HashMap<String, Object>());
     }
 
     /**
      * Upload a file by URL and return a new document instance.
      *
-     * @param Client client The client instance to make requests from.
-     * @param String url The URL of the file to upload.
-     * @param object|null params An key-value pair of options relating to the
-     *                           file upload. None are necessary; all are
-     *                           optional. Us the following options:
-     *                             - string|null 'name' Override the filename of
-     *                               the file being uploaded.
-     *                             - string[]|string|null 'thumbnails' An array
-     *                               of dimensions in pixels, with each
-     *                               dimension formatted as [width]x[height],
-     *                               this can also be a comma-separated string.
-     *                             - bool|null 'nonSvg' Create a second version
-     *                               of the file that doesn't use SVG, for users
-     *                               with browsers that don't support SVG?
+     * @param client The client instance to make requests from.
+     * @param url The URL of the file to upload.
+     * @param params An key-value pair of options relating to the file upload.
+     *               None are necessary; all are optional. Use the following
+     *               options:
+     *                 - string|null 'name' Override the filename of the file
+     *                   being uploaded.
+     *                 - string[]|string|null 'thumbnails' An array of
+     *                   dimensions in pixels, with each dimension formatted as
+     *                   [width]x[height], this can also be a comma-separated
+     *                   string.
+     *                 - bool|null 'nonSvg' Create a second version of the file
+     *                   that doesn't use SVG, for users with browsers that
+     *                   don't support SVG?
      *
-     * @return Document A new document instance.
-     * @throws Exception
+     * @return A new document instance.
+     * @throws BoxViewException
      */
     public static Document upload(Client client,
                                   String url,
                                   Map<String, Object> params)
-                  throws Exception {
+                  throws BoxViewException {
         Map<String, Object> postParams = new HashMap<String, Object>();
         postParams.put("url", url);
 
@@ -539,13 +512,15 @@ public class Document extends Base {
     /**
      * Update the current document instance with new metadata.
      *
-     * @param object data A key-value pair to instantiate the object with.
-     *                    Use the following values:
-     *                      - string|Date 'createdAt' The date the document was
-     *                        created.
-     *                      - string 'name' The document title.
-     *                      - string 'status' The document status, which can be
-     *                        'queued', 'processing', 'done', or 'error'.
+     * @param data A key-value pair to instantiate the object with. Use the
+     *             following values:
+     *               - string|Date 'createdAt' The date the document was
+     *                 created.
+     *               - string 'name' The document title.
+     *               - string 'status' The document status, which can be
+     *                 'queued', 'processing', 'done', or 'error'.
+     *
+     * @return void
      */
     private void setValues(Map<String, Object> data) {
         if (data.containsKey("created_at")) {
@@ -554,7 +529,11 @@ public class Document extends Base {
         }
 
         if (data.containsKey("createdAt")) {
-            createdAt = parseDate(data.get("createdAt"));
+            if (data.get("createdAt") instanceof String) {
+                createdAt = parseDate((String) data.get("createdAt"));
+            } else {
+                createdAt = (Date) data.get("createdAt");
+            }
         }
 
         if (data.containsKey("name"))   name   = (String) data.get("name");
@@ -566,23 +545,21 @@ public class Document extends Base {
      * more specific than this one, and know how to handle upload by URL and
      * upload from filesystem.
      *
-     * @param Client client The client instance to make requests from.
-     * @param object|null params A key-value pair of options relating to the
-     *                           file upload. Pass-thru from the other upload
-     *                           functions.
-     * @param object|null postParams A key-value pair of POST params to be sent
-     *                               in the body.
-     * @param object|null options A key-value pair of request options that may
-     *                            modify the way the request is made.
+     * @param client The client instance to make requests from.
+     * @param params A key-value pair of options relating to the file upload.
+     *               Pass-thru from the other upload functions.
+     * @param postParams A key-value pair of POST params to be sent in the body.
+     * @param options A key-value pair of request options that may modify the
+     *                 way the request is made.
      *
-     * @return Document A new document instance.
-     * @throws Exception
+     * @return A new document instance.
+     * @throws BoxViewException
      */
     private static Document upload(Client client,
                                    Map<String, Object> params,
                                    Map<String, Object> postParams,
                                    Map<String, Object> options)
-                   throws Exception {
+                   throws BoxViewException {
         if (postParams == null) {
             postParams = new HashMap<String, Object>();
         }

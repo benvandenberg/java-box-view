@@ -16,7 +16,7 @@ public abstract class Base {
     /**
      * The API path relative to the base API path.
      */
-    public static String path = "/";
+    public static final String path = "/";
 
     /**
      * The client instance to make requests from.
@@ -27,12 +27,12 @@ public abstract class Base {
      * Take a date object, and return a date string that is formatted as an
      * RFC 3339 timestamp.
      *
-     * @param Date date A date object.
+     * @param date A date object.
      *
-     * @return string An RFC 3339 timestamp.
+     * @return An RFC 3339 timestamp.
      */
     protected static String date(Date date) {
-        String format              = "yyyy-MM-dd'T'HH:mm:ss";
+        String format              = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
         SimpleDateFormat isoFormat = new SimpleDateFormat(format);
         isoFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
         return isoFormat.format(date);
@@ -42,54 +42,50 @@ public abstract class Base {
      * Take a date string in almost any format, and return a date string that
      * is formatted as an RFC 3339 timestamp.
      *
-     * @param string dateString A date string in almost any format.
+     * @param dateString A date string in almost any format.
      *
-     * @return string An RFC 3339 timestamp.
+     * @return An RFC 3339 timestamp.
      * @throws ParseException
      */
     protected static String date(String dateString) throws ParseException {
-        return date(SimpleDateFormat.getInstance().parse(dateString));
+        return date(parseDate(dateString));
     }
 
     /**
      * Handle an error. We handle errors by throwing an exception.
      *
-     * @param string error An error code representing the error
-     *                     (use_underscore_separators).
-     * @param string message The error message.
+     * @param error An error code representing the error
+     *              (use_underscore_separators).
+     * @param message The error message.
      *
      * @return void
-     * @throws Exception
+     * @throws BoxViewException
      */
     protected static void error(String error, String message)
-                     throws Exception {
-        throw new Exception(message, error);
+                     throws BoxViewException {
+        throw new BoxViewException(message, error);
     }
 
     /**
      * Take a date object or date string in RFC 3339 format, and return a date
      * object.
      *
-     * @param object dateString A date or date string in RFC 3339 format.
+     * @param dateString A date string in RFC 3339 format.
      *
-     * @return Date The date representation of the dateString.
+     * @return The date representation of the dateString.
      */
-    protected static Date parseDate(Object dateString) {
-        if (dateString instanceof Date) {
-            return (Date) dateString;
-        }
-
+    protected static Date parseDate(String dateString) {
         Date date;
 
         try {
             String format         = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
             DateFormat dateFormat = new SimpleDateFormat(format);
-            date                  = dateFormat.parse((String) dateString);
+            date                  = dateFormat.parse(dateString);
         } catch (ParseException e) {
             try {
                 String format         = "yyyy-MM-dd'T'HH:mm:ss'Z'";
                 DateFormat dateFormat = new SimpleDateFormat(format);
-                date                  = dateFormat.parse((String) dateString);
+                date                  = dateFormat.parse(dateString);
             } catch (ParseException e2) {
                 date = null;
             }
@@ -101,17 +97,15 @@ public abstract class Base {
     /**
      * Send a new request to the API and return a string.
      *
-     * @param Client client The client instance to make requests from.
-     * @param string path The path to make a request to.
-     * @param object|null getParams A key-value pair of GET params to be added
-     *                              to the URL.
-     * @param object|null postParams A key-value pair of POST params to be sent
-     *                               in the body.
-     * @param object|null requestOptions A key-value pair of request options
-     *                                   that may modify the way the request is made.
+     * @param client The client instance to make requests from.
+     * @param path The path to make a request to.
+     * @param getParams A key-value pair of GET params to be added to the URL.
+     * @param postParams A key-value pair of POST params to be sent in the body.
+     * @param requestOptions A key-value pair of request options that may modify
+     *                       the way the request is made.
      *
-     * @return string The response is pass-thru from Request.
-     * @throws Exception
+     * @return The response is pass-thru from Request.
+     * @throws BoxViewException
      */
     protected static HttpEntity requestHttpEntity(
                                              Client client,
@@ -119,7 +113,7 @@ public abstract class Base {
                                              Map<String, Object> getParams,
                                              Map<String, Object> postParams,
                                              Map<String, Object> requestOptions)
-                     throws Exception {
+                     throws BoxViewException {
         requestOptions.put("rawResponse", true);
         return client.getRequestHandler().requestHttpEntity(path,
                                                             getParams,
@@ -128,20 +122,17 @@ public abstract class Base {
     }
 
     /**
-     * Send a new request to the API and return a JSONObject.
+     * Send a new request to the API and return a key-value pair.
      *
-     * @param Client client The client instance to make requests from.
-     * @param string path The path to make a request to.
-     * @param object|null getParams A key-value pair of GET params to be added
-     *                              to the URL.
-     * @param object|null postParams A key-value pair of POST params to be sent
-     *                               in the body.
-     * @param object|null requestOptions A key-value pair of request options
-     *                                   that may modify the way the request is
-     *                                   made.
+     * @param client The client instance to make requests from.
+     * @param path The path to make a request to.
+     * @param getParams A key-value pair of GET params to be added to the URL.
+     * @param postParams A key-value pair of POST params to be sent in the body.
+     * @param requestOptions A key-value pair of request options that may modify
+     *                       the way the request is made.
      *
-     * @return string The response is pass-thru from Request.
-     * @throws Exception
+     * @return The response is pass-thru from Request.
+     * @throws BoxViewException
      */
     protected static Map<String, Object> requestJson(
                                              Client client,
@@ -149,7 +140,7 @@ public abstract class Base {
                                              Map<String, Object> getParams,
                                              Map<String, Object> postParams,
                                              Map<String, Object> requestOptions)
-                     throws Exception {
+                     throws BoxViewException {
         return client.getRequestHandler().requestJson(path,
                                                       getParams,
                                                       postParams,

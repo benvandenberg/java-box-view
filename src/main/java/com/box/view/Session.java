@@ -1,5 +1,6 @@
 package com.box.view;
 
+import java.text.ParseException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -10,20 +11,6 @@ import org.apache.http.HttpEntity;
  * Provide access to the Box View Session API. The Session API is used to create
  * sessions for specific documents that can be used to view a document using a
  * specific session-based URL.
- *
- * Session objects have the following fields:
- *   - Box\View\Document 'document' The document the session was created for.
- *   - string 'id' The session ID.
- *   - string 'expiresAt' The date the session was created.
- *   - array 'urls' An associative array of URLs for 'assets', 'realtime', and
- *                  'view'.
- *
- * When creating a session, the following parameters can be set:
- *   - int|null 'duration' The number of minutes for the session to last.
- *   - string|DateTime|null 'expiresAt' When the session should expire.
- *   - bool|null 'isDownloadable' Should the user be allowed to download the
- *                                original file?
- *   - bool|null 'isTextSelectable' Should the user be allowed to select text?
  */
 public class Session extends Base {
     /**
@@ -56,16 +43,15 @@ public class Session extends Base {
     /**
      * Instantiate the session.
      *
-     * @param client client The client instance to make requests from.
-     * @param object data An associative array to instantiate the object with.
-     *                    Use the following values:
-     *                      - Document 'document' The document the session was
-     *                        created for.
-     *                      - string 'id' The session ID.
-     *                      - string 'expiresAt' The date the session was
-     *                        created.
-     *                      - array 'urls' A key-value pair of URLs for
-     *                        'assets', 'realtime', and 'view'.
+     * @param client The client instance to make requests from.
+     * @param data A key-value pair used to instantiate the object with. Use the
+     *             following values:
+     *               - Document 'document' The document the session was created
+     *                 for.
+     *               - string 'id' The session ID.
+     *               - string|Date 'expiresAt' The date the session was created.
+     *               - array 'urls' A key-value pair of URLs for 'assets',
+     *                 'realtime', and 'view'.
      */
     public Session(Client client, Map<String, Object> data) {
         this.client = client;
@@ -77,7 +63,7 @@ public class Session extends Base {
     /**
      * Get the document the session was created for.
      *
-     * @return Document The document the session was created for.
+     * @return The document the session was created for.
      */
     public Document document() {
         return document;
@@ -86,7 +72,7 @@ public class Session extends Base {
     /**
      * Get the session ID.
      *
-     * @return string The session ID.
+     * @return The session ID.
      */
     public String id() {
         return id;
@@ -95,7 +81,7 @@ public class Session extends Base {
     /**
      * Get the date the session expires, formatted as RFC 3339.
      *
-     * @return Date The date the session expires, formatted as RFC 3339.
+     * @return The date the session expires, formatted as RFC 3339.
      */
     public Date expiresAt() {
         return expiresAt;
@@ -104,7 +90,7 @@ public class Session extends Base {
     /**
      * Get the session assets URL.
      *
-     * @return string The session assets URL.
+     * @return The session assets URL.
      */
     public String assetsUrl() {
         return urls.get("assets");
@@ -113,7 +99,7 @@ public class Session extends Base {
     /**
      * Get the session realtime URL.
      *
-     * @return string The session realtimes URL.
+     * @return The session realtimes URL.
      */
     public String realtimeUrl() {
         return urls.get("realtime");
@@ -122,7 +108,7 @@ public class Session extends Base {
     /**
      * Get the session view URL.
      *
-     * @return string The session view URL.
+     * @return The session view URL.
      */
     public String viewUrl() {
         return urls.get("view");
@@ -131,10 +117,10 @@ public class Session extends Base {
     /**
      * Delete a session.
      *
-     * @return bool Was the session deleted?
-     * @throws Exception
+     * @return Was the session deleted?
+     * @throws BoxViewException
      */
-    public Boolean delete() throws Exception {
+    public Boolean delete() throws BoxViewException {
         Map<String, Object> options = new HashMap<String, Object>();
         options.put("httpMethod", "DELETE");
         options.put("rawResponse", true);
@@ -152,13 +138,14 @@ public class Session extends Base {
     /**
      * Create a session for a specific document by ID that may expire.
      *
-     * @param Client client The client instance to make requests from.
-     * @param string id The ID of the file to create a session for.
+     * @param client The client instance to make requests from.
+     * @param id The ID of the file to create a session for.
      *
-     * @return Session A new session instance.
-     * @throws Exception
+     * @return A new session instance.
+     * @throws BoxViewException
      */
-    public static Session create(Client client, String id) throws Exception {
+    public static Session create(Client client, String id)
+                  throws BoxViewException {
         Map<String, Object> postParams = new HashMap<String, Object>();
         postParams.put("document_id", id);
 
@@ -173,27 +160,28 @@ public class Session extends Base {
     /**
      * Create a session for a specific document by ID that may expire.
      *
-     * @param Client client The client instance to make requests from.
-     * @param string id The ID of the file to create a session for.
-     * @param object|null params A key-value pair of options relating to the new
-     *                           session. None are necessary; all are optional.
-     *                           Use the following options:
-     *                             - integer|null 'duration' The number of
-     *                               minutes for the session to last.
-     *                             - string|Date|null 'expiresAt' When the
-     *                               session should expire.
-     *                             - bool|null 'isDownloadable' Should the user
-     *                               be allowed to download the original file?
-     *                             - bool|null 'isTextSelectable' Should the
-     *                               user be allowed to select text?
+     * @param client The client instance to make requests from.
+     * @param id The ID of the file to create a session for.
+     * @param params A key-value pair of options relating to the new session.
+     *               None are necessary; all are optional. Use the following
+     *               options:
+     *                 - int|null 'duration' The number of minutes for the
+     *                   session to last.
+     *                 - string|Date|null 'expiresAt' When the session should
+     *                   expire.
+     *                 - bool|null 'isDownloadable' Should the user be allowed
+     *                   to download the original file?
+     *                 - bool|null 'isTextSelectable' Should the user be allowed
+     *                   to select text?
      *
-     * @return Session A new session instance.
-     * @throws Exception
+     * @return A new session instance.
+     * @throws BoxViewException
+     * @throws ParseException
      */
     public static Session create(Client client,
                                  String id,
                                  Map<String, Object> params)
-                  throws Exception {
+                  throws BoxViewException, ParseException {
         Map<String, Object> postParams = new HashMap<String, Object>();
         postParams.put("document_id",  id);
 
@@ -208,7 +196,7 @@ public class Session extends Base {
             if (expiresAt instanceof Date) {
                 expiresAtString = date((Date) expiresAt);
             } else {
-                expiresAtString = (String) expiresAt;
+                expiresAtString = date(expiresAt.toString());
             }
 
             postParams.put("expires_at", expiresAtString);
@@ -234,14 +222,15 @@ public class Session extends Base {
     /**
      * Update the current document instance with new metadata.
      *
-     * @param object data A key-value pair to instantiate the object with. Use
-     *                    the following values:
-     *                      - Box\View\Document 'document' The document the
-     *                        session was created for.
-     *                      - string 'expiresAt' The date the session was
-     *                        created.
-     *                      - array 'urls' A key-value pair of URLs for
-     *                        'assets', 'realtime', and 'view'.
+     * @param data A key-value pair to instantiate the object with. Use the
+     *             following values:
+     *               - Document 'document' The document the session was created
+     *                 for.
+     *               - string|Date 'expiresAt' The date the session was created.
+     *               - object 'urls' A key-value pair of URLs for 'assets',
+     *                 'realtime', and 'view'.
+     *
+     * @return void
      */
     private void setValues(Map<String, Object> data) {
         if (data.containsKey("document")) {
@@ -257,7 +246,11 @@ public class Session extends Base {
         }
 
         if (data.containsKey("expiresAt")) {
-            expiresAt = parseDate(data.get("expiresAt"));
+            if (data.get("expiresAt") instanceof String) {
+                expiresAt = parseDate((String) data.get("expiresAt"));
+            } else {
+                expiresAt = (Date) data.get("expiresAt");
+            }
         }
 
         if (data.containsKey("urls") && data.get("urls") instanceof Map<?, ?>) {
