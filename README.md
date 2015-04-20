@@ -73,7 +73,7 @@ You can find a list of these fields below in their respective sections.
 ### Errors
 
 Errors are handled by throwing exceptions.
-We throw instances of `com.box.view.Exception`.
+We throw instances of `BoxViewException`.
 
 Note that any Box View API call can throw an exception.
 When making API calls, put them in a try/catch block.
