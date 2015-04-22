@@ -31,12 +31,12 @@ public class Document extends Base {
     /**
      * The Document API path relative to the base API path.
      */
-    public static final String path = "/documents";
+    public static final String PATH = "/documents";
 
     /**
      * The fields that can be updated on a document.
      */
-    public static final String[] updateableFields = {"name"};
+    public static final String[] UPDATEABLE_FIELDS = {"name"};
 
     /**
      * The date the document was created, formatted as RFC 3339.
@@ -72,7 +72,7 @@ public class Document extends Base {
      *               - string 'status' The document status, which can be
      *                 'queued', 'processing', 'done', or 'error'.
      */
-    public Document(Client client, Map<String, Object>data) {
+    public Document(BoxViewClient client, Map<String, Object>data) {
         this.client = client;
         id          = (String) data.get("id");
 
@@ -84,7 +84,7 @@ public class Document extends Base {
      *
      * @return The date the document was created, formatted as RFC 3339.
      */
-    public Date createdAt() {
+    public Date getCreatedAt() {
         return createdAt;
     }
 
@@ -93,7 +93,7 @@ public class Document extends Base {
      *
      * @return The document ID.
      */
-    public String id() {
+    public String getId() {
         return id;
     }
 
@@ -102,7 +102,7 @@ public class Document extends Base {
      *
      * @return The document title.
      */
-    public String name() {
+    public String getName() {
         return name;
     }
 
@@ -111,7 +111,7 @@ public class Document extends Base {
      *
      * @return The document title.
      */
-    public String status() {
+    public String getStatus() {
         return status;
     }
 
@@ -161,7 +161,7 @@ public class Document extends Base {
         options.put("rawResponse", true);
 
         HttpEntity response = requestHttpEntity(client,
-                                                path + "/" + id,
+                                                PATH + "/" + id,
                                                 null,
                                                 null,
                                                 options);
@@ -181,7 +181,7 @@ public class Document extends Base {
         options.put("rawResponse", true);
 
         HttpEntity response = requestHttpEntity(client,
-                                                path + "/" + id + "/content",
+                                                PATH + "/" + id + "/content",
                                                 null,
                                                 null,
                                                 options);
@@ -207,7 +207,7 @@ public class Document extends Base {
      * @throws BoxViewException
      */
     public InputStream download(String extension) throws BoxViewException {
-        String path = Document.path + "/" + id + "/content." + extension;
+        String path = PATH + "/" + id + "/content." + extension;
 
         Map<String, Object> options = new HashMap<String, Object>();
         options.put("rawResponse", true);
@@ -247,7 +247,7 @@ public class Document extends Base {
         options.put("rawResponse", true);
 
         HttpEntity response = requestHttpEntity(client,
-                                                path + "/" + id + "/thumbnail",
+                                                PATH + "/" + id + "/thumbnail",
                                                 getParams,
                                                 null,
                                                 options);
@@ -263,7 +263,7 @@ public class Document extends Base {
     }
 
     /**
-     * Update specific fields for the metadata of a file .
+     * Update specific fields for the metadata of a file.
      *
      * @param fields A key-value pair of the fields to update on the file.
      *
@@ -273,7 +273,7 @@ public class Document extends Base {
     public Boolean update(Map<String, Object> fields) throws BoxViewException {
         Map<String, Object> postParams = new HashMap<String, Object>();
 
-        for (String field : updateableFields) {
+        for (String field : UPDATEABLE_FIELDS) {
             if (fields.containsKey(field)
                     && !fields.get(field).toString().isEmpty()) {
                 postParams.put(field, fields.get(field));
@@ -284,7 +284,7 @@ public class Document extends Base {
         options.put("httpMethod", "PUT");
 
         Map<String, Object> metadata = requestJson(client,
-                                                   path + "/" + id,
+                                                   PATH + "/" + id,
                                                    null,
                                                    postParams,
                                                    options);
@@ -301,7 +301,7 @@ public class Document extends Base {
      * @throws BoxViewException
      * @throws ParseException
      */
-    public static List<Document> find(Client client)
+    public static List<Document> find(BoxViewClient client)
                   throws BoxViewException, ParseException {
         return find(client, new HashMap<String, Object>());
     }
@@ -323,7 +323,8 @@ public class Document extends Base {
      * @throws BoxViewException
      */
     @SuppressWarnings("unchecked")
-    public static List<Document> find(Client client, Map<String, Object> params)
+    public static List<Document> find(BoxViewClient client,
+                                      Map<String, Object> params)
                   throws BoxViewException, ParseException {
         Map<String, Object> getParams = new HashMap<String, Object>();
 
@@ -333,43 +334,34 @@ public class Document extends Base {
         }
 
         if (params.containsKey("createdBefore")) {
-            Object createdBefore = params.get("createdBefore");
-            String createdBeforeString;
-
-            if (createdBefore instanceof Date) {
-                createdBeforeString = date((Date) createdBefore);
-            } else {
-                createdBeforeString = date(createdBefore.toString());
-            }
-
-            getParams.put("createdBefore", createdBeforeString);
+            Object createdBefore       = params.get("createdBefore");
+            String createdBeforeString = (createdBefore instanceof Date)
+                                         ? date((Date) createdBefore)
+                                         : date(createdBefore.toString());
+            getParams.put("created_before", createdBeforeString);
         }
 
         if (params.containsKey("createdAfter")) {
             Object createdAfter = params.get("createdAfter");
-            String createdAfterString;
-
-            if (createdAfter instanceof Date) {
-                createdAfterString = date((Date) createdAfter);
-            } else {
-                createdAfterString = date(createdAfter.toString());
-            }
-
-            getParams.put("createdAfter", createdAfterString);
+            String createdAfterString = (createdAfter instanceof Date)
+                                        ? date((Date) createdAfter)
+                                        : date(createdAfter.toString());
+            getParams.put("created_after", createdAfterString);
         }
 
         Map<String, Object> response = requestJson(client,
-                                                   path,
+                                                   PATH,
                                                    getParams,
                                                    null,
                                                    null);
 
         if (response.isEmpty()
+                || !response.containsKey("document_collection")
                 || ((Map<String, Object>) response.get("document_collection"))
                    .isEmpty()
                 || !((Map<String, Object>) response.get("document_collection"))
                     .containsKey("entries")) {
-        String message = "response is not in a valid format.";
+            String message = "response is not in a valid format.";
             error(INVALID_RESPONSE_ERROR, message);
         }
 
@@ -388,15 +380,16 @@ public class Document extends Base {
     }
 
     /**
-     * Get specific fields from the metadata of a file.
+     * Create a new document instance by ID, and load it with values requested
+     * from the API.
      *
      * @param client The client instance to make requests from.
-     * @param id The ID of the file to check.
+     * @param id The document ID.
      *
      * @return A document instance using data from the API.
      * @throws BoxViewException
      */
-    public static Document get(Client client, String id)
+    public static Document get(BoxViewClient client, String id)
                   throws BoxViewException {
         String[] fields   = {"id", "created_at", "name", "status"};
         StringBuilder sb  = new StringBuilder();
@@ -410,7 +403,7 @@ public class Document extends Base {
         getParams.put("fields", sb.toString());
 
         Map<String, Object> metadata = requestJson(client,
-                                                   path + "/" + id,
+                                                   PATH + "/" + id,
                                                    getParams,
                                                    null,
                                                    null);
@@ -427,7 +420,7 @@ public class Document extends Base {
      * @return A new document instance.
      * @throws BoxViewException
      */
-    public static Document upload(Client client, File file)
+    public static Document upload(BoxViewClient client, File file)
                   throws BoxViewException {
         return upload(client, file, new HashMap<String, Object>());
     }
@@ -453,7 +446,7 @@ public class Document extends Base {
      * @return A new document instance.
      * @throws BoxViewException
      */
-    public static Document upload(Client client,
+    public static Document upload(BoxViewClient client,
                                   File file,
                                   Map<String, Object> params)
                   throws BoxViewException {
@@ -473,7 +466,7 @@ public class Document extends Base {
      * @return A new document instance.
      * @throws BoxViewException
      */
-    public static Document upload(Client client, String url)
+    public static Document upload(BoxViewClient client, String url)
                   throws BoxViewException {
         return upload(client, url, new HashMap<String, Object>());
     }
@@ -499,7 +492,7 @@ public class Document extends Base {
      * @return A new document instance.
      * @throws BoxViewException
      */
-    public static Document upload(Client client,
+    public static Document upload(BoxViewClient client,
                                   String url,
                                   Map<String, Object> params)
                   throws BoxViewException {
@@ -529,11 +522,9 @@ public class Document extends Base {
         }
 
         if (data.containsKey("createdAt")) {
-            if (data.get("createdAt") instanceof String) {
-                createdAt = parseDate((String) data.get("createdAt"));
-            } else {
-                createdAt = (Date) data.get("createdAt");
-            }
+            createdAt = (data.get("createdAt") instanceof Date)
+                        ? (Date) data.get("createdAt")
+                        : parseDate(data.get("createdAt").toString());
         }
 
         if (data.containsKey("name"))   name   = (String) data.get("name");
@@ -555,7 +546,7 @@ public class Document extends Base {
      * @return A new document instance.
      * @throws BoxViewException
      */
-    private static Document upload(Client client,
+    private static Document upload(BoxViewClient client,
                                    Map<String, Object> params,
                                    Map<String, Object> postParams,
                                    Map<String, Object> options)
@@ -592,7 +583,7 @@ public class Document extends Base {
         }
 
         Map<String, Object> metadata = requestJson(client,
-                                                   path,
+                                                   PATH,
                                                    null,
                                                    postParams,
                                                    options);

@@ -15,10 +15,8 @@ import org.apache.http.HttpEntity;
 public class Session extends Base {
     /**
      * The Session API path relative to the base API path.
-     *
-     * @var string
      */
-    public static final String path = "/sessions";
+    public static final String PATH = "/sessions";
 
     /**
      * The document that created this session.
@@ -50,10 +48,10 @@ public class Session extends Base {
      *                 for.
      *               - string 'id' The session ID.
      *               - string|Date 'expiresAt' The date the session was created.
-     *               - array 'urls' A key-value pair of URLs for 'assets',
+     *               - object 'urls' A key-value pair of URLs for 'assets',
      *                 'realtime', and 'view'.
      */
-    public Session(Client client, Map<String, Object> data) {
+    public Session(BoxViewClient client, Map<String, Object> data) {
         this.client = client;
         id          = (String) data.get("id");
 
@@ -65,7 +63,7 @@ public class Session extends Base {
      *
      * @return The document the session was created for.
      */
-    public Document document() {
+    public Document getDocument() {
         return document;
     }
 
@@ -74,7 +72,7 @@ public class Session extends Base {
      *
      * @return The session ID.
      */
-    public String id() {
+    public String getId() {
         return id;
     }
 
@@ -83,7 +81,7 @@ public class Session extends Base {
      *
      * @return The date the session expires, formatted as RFC 3339.
      */
-    public Date expiresAt() {
+    public Date getExpiresAt() {
         return expiresAt;
     }
 
@@ -92,7 +90,7 @@ public class Session extends Base {
      *
      * @return The session assets URL.
      */
-    public String assetsUrl() {
+    public String getAssetsUrl() {
         return urls.get("assets");
     }
 
@@ -101,7 +99,7 @@ public class Session extends Base {
      *
      * @return The session realtimes URL.
      */
-    public String realtimeUrl() {
+    public String getRealtimeUrl() {
         return urls.get("realtime");
     }
 
@@ -110,7 +108,7 @@ public class Session extends Base {
      *
      * @return The session view URL.
      */
-    public String viewUrl() {
+    public String getViewUrl() {
         return urls.get("view");
     }
 
@@ -126,7 +124,7 @@ public class Session extends Base {
         options.put("rawResponse", true);
 
         HttpEntity response = requestHttpEntity(client,
-                                                path + "/" + id,
+                                                PATH + "/" + id,
                                                 null,
                                                 null,
                                                 options);
@@ -144,13 +142,13 @@ public class Session extends Base {
      * @return A new session instance.
      * @throws BoxViewException
      */
-    public static Session create(Client client, String id)
+    public static Session create(BoxViewClient client, String id)
                   throws BoxViewException {
         Map<String, Object> postParams = new HashMap<String, Object>();
         postParams.put("document_id", id);
 
         Map<String, Object> metadata = requestJson(client,
-                                                   path,
+                                                   PATH,
                                                    null,
                                                    postParams,
                                                    null);
@@ -178,14 +176,15 @@ public class Session extends Base {
      * @throws BoxViewException
      * @throws ParseException
      */
-    public static Session create(Client client,
+    public static Session create(BoxViewClient client,
                                  String id,
                                  Map<String, Object> params)
                   throws BoxViewException, ParseException {
         Map<String, Object> postParams = new HashMap<String, Object>();
         postParams.put("document_id",  id);
 
-        if (params.containsKey("duration")) {
+        if (params.containsKey("duration")
+                && Integer.parseInt(params.get("duration").toString()) > 0) {
             postParams.put("duration", params.get("duration"));
         }
 
@@ -212,7 +211,7 @@ public class Session extends Base {
         }
 
         Map<String, Object> metadata = requestJson(client,
-                                                   path,
+                                                   PATH,
                                                    null,
                                                    postParams,
                                                    null);
@@ -246,11 +245,9 @@ public class Session extends Base {
         }
 
         if (data.containsKey("expiresAt")) {
-            if (data.get("expiresAt") instanceof String) {
-                expiresAt = parseDate((String) data.get("expiresAt"));
-            } else {
-                expiresAt = (Date) data.get("expiresAt");
-            }
+            expiresAt = (data.get("expiresAt") instanceof Date)
+                        ? (Date) data.get("expiresAt")
+                        : parseDate(data.get("expiresAt").toString());
         }
 
         if (data.containsKey("urls") && data.get("urls") instanceof Map<?, ?>) {

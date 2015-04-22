@@ -201,7 +201,7 @@ public class Request {
             }
 
             message += "\n";
-            message += "Response: " + responseBody + "\n";
+            message += "Response Body: " + responseBody + "\n";
         }
 
         throw new BoxViewException(message, error);
@@ -341,22 +341,6 @@ public class Request {
     }
 
     /**
-     * Get a new HttpClient instance using sensible defaults.
-     *
-     * @return A new HttpClient instance.
-     */
-    private HttpClient getHttpClient() {
-        RequestConfig config = RequestConfig.custom()
-                               .setConnectTimeout(10 * 1000)
-                               .setConnectionRequestTimeout(60 * 1000)
-                               .setSocketTimeout(60 * 1000)
-                               .build();
-        return HttpClientBuilder.create()
-                                .setDefaultRequestConfig(config)
-                                .build();
-    }
-
-    /**
      * Create an HTTP request object.
      *
      * @param method The HTTP method to call.
@@ -415,6 +399,22 @@ public class Request {
     }
 
     /**
+     * Get a new HttpClient instance using sensible defaults.
+     *
+     * @return A new HttpClient instance.
+     */
+    private static HttpClient getHttpClient() {
+        RequestConfig config = RequestConfig.custom()
+                               .setConnectTimeout(10 * 1000)
+                               .setConnectionRequestTimeout(60 * 1000)
+                               .setSocketTimeout(60 * 1000)
+                               .build();
+        return HttpClientBuilder.create()
+                                .setDefaultRequestConfig(config)
+                                .build();
+    }
+
+    /**
      * Create a URI, given a hostname, path, and GET params.
 
      * @param hostName The hostname to make the request to.
@@ -424,7 +424,7 @@ public class Request {
      * @return The URI to make the request to.
      * @throws BoxViewException
      */
-    private URI getUri(String hostName,
+    private static URI getUri(String hostName,
                        String path,
                        Map<String, Object> getParams)
             throws BoxViewException {
@@ -512,7 +512,7 @@ public class Request {
 
         if (jsonDecoded.containsKey("status")
                 && jsonDecoded.get("status").toString() == "error") {
-            String message = (jsonDecoded.containsKey("erorr_message")
+            String message = (jsonDecoded.containsKey("error_message")
                               && jsonDecoded.get("error_message") != null)
                                  ? jsonDecoded.get("error_message").toString()
                                  : "Server Error";

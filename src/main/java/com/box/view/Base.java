@@ -16,12 +16,12 @@ public abstract class Base {
     /**
      * The API path relative to the base API path.
      */
-    public static final String path = "/";
+    public static final String PATH = "/";
 
     /**
      * The client instance to make requests from.
      */
-    protected Client client;
+    protected BoxViewClient client;
 
     /**
      * Take a date object, and return a date string that is formatted as an
@@ -108,7 +108,7 @@ public abstract class Base {
      * @throws BoxViewException
      */
     protected static HttpEntity requestHttpEntity(
-                                             Client client,
+                                             BoxViewClient client,
                                              String path,
                                              Map<String, Object> getParams,
                                              Map<String, Object> postParams,
@@ -135,7 +135,7 @@ public abstract class Base {
      * @throws BoxViewException
      */
     protected static Map<String, Object> requestJson(
-                                             Client client,
+                                             BoxViewClient client,
                                              String path,
                                              Map<String, Object> getParams,
                                              Map<String, Object> postParams,

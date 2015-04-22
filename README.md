@@ -54,7 +54,7 @@ You can inspect the `examples/Examples.java` code to see each API call being use
 To start using `java-box-view` in your code, set your API key:
 
 ```java
-boxView = new Client("YOUR_API_KEY");
+BoxViewClient boxView = new BoxViewClient("YOUR_API_KEY");
 ```
 
 And now you can start using the methods in `Document` and `Session`.
@@ -85,10 +85,10 @@ You can see `examples/Examples.java` to see working code for each method using t
 
 Field     | Getter
 --------- | ------
-id        | document.id()
-createdAt | document.createdAt()
-name      | document.name()
-status    | document.status()
+id        | document.getId()
+createdAt | document.getCreatedAt()
+name      | document.getName()
+status    | document.getStatus()
 
 #### Upload from File
 
@@ -212,7 +212,6 @@ List<Document> documents = boxView.findDocuments(options);
 The response looks like this:
 
 ```java
-
 [
   com.box.view.Document@a21d23b[
     id=386bd56cd42a4256b9b25342d6ba986d,
@@ -247,7 +246,7 @@ try {
 }
 ```
 
-The response is an InputStream object representing the data of the file.
+The response is an `InputStream` object representing the data of the file.
 
 #### Thumbnail
 
@@ -268,7 +267,7 @@ try {
 }
 ```
 
-The response is an InputStream object representing the data of the file.
+The response is an `InputStream` object representing the data of the file.
 
 #### Update
 
@@ -325,12 +324,12 @@ true
 
 Field       | Getter
 ----------- | ------
-id          | session.id()
-document    | session.document()
-expiresAt   | session.expiresAt()
-assetsUrl   | session.assetsUrl()
-realtimeUrl | session.realtimeUrl()
-viewUrl     | session.viewUrl()
+id          | session.getId()
+document    | session.getDocument()
+expiresAt   | session.getExpiresAt()
+assetsUrl   | session.getAssetsUrl()
+realtimeUrl | session.getRealtimeUrl()
+viewUrl     | session.getViewUrl()
 
 #### Create
 

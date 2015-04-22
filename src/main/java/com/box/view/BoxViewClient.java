@@ -8,7 +8,7 @@ import java.util.Map;
 /**
  * Provides access to the Box View API.
  */
-public class Client {
+public class BoxViewClient {
     /**
      * The developer's Box View API key.
      */
@@ -24,7 +24,7 @@ public class Client {
      *
      * @param apiKey The API key to use.
      */
-    public Client(String apiKey) {
+    public BoxViewClient(String apiKey) {
         setApiKey(apiKey);
     }
 
