@@ -60,7 +60,7 @@ public class Examples {
      */
     public static void example1() {
         System.out.println("Example #1 - Upload sample file by URL.");
-        String sampleUrl = "http://crocodoc.github.io/php-box-view/examples/"
+        String sampleUrl = "http://crocodoc.github.io/java-box-view/examples/"
                             + "files/sample.doc";
         System.out.print("  Uploading... ");
 

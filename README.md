@@ -17,7 +17,7 @@ For more information about the Box View API, see the [API docs at developers.box
 
 ### Install
 
-First, get the library. You can download the JAR here: [put URL here]
+First, get the library. You can download the JAR here: http://crocodoc.github.io/java-box-view/box-view.jar
 
 Add box-view.jar to your classpath.
 
