@@ -122,7 +122,7 @@ public class Examples {
     public static void example3() {
         System.out.println("Example #3 - Upload a sample .doc as a file using"
                            + " all options.");
-        File file = new File("./examples/files/sample.doc");
+        File file = new File("./files/sample.doc");
         System.out.print("  Uploading... ");
 
         Map<String, Object> params = new HashMap<String, Object>();
@@ -335,7 +335,7 @@ public class Examples {
 
         try {
             InputStream contents = document.download();
-            String filename = "./examples/files/test-original.doc";
+            String filename = "./files/test-original.doc";
             File file = new File(filename);
 
             try {
@@ -368,7 +368,7 @@ public class Examples {
 
         try {
             InputStream contents = document.download("pdf");
-            String filename = "./examples/files/test.pdf";
+            String filename = "./files/test.pdf";
             File file = new File(filename);
 
             try {
@@ -401,7 +401,7 @@ public class Examples {
 
         try {
             InputStream contents = document.download("zip");
-            String filename = "./examples/files/test.zip";
+            String filename = "./files/test.zip";
             File file = new File(filename);
 
             try {
@@ -435,7 +435,7 @@ public class Examples {
 
         try {
             InputStream contents = document.thumbnail(16, 16);
-            String filename = "./examples/files/test-thumbnail.png";
+            String filename = "./files/test-thumbnail.png";
             File file = new File(filename);
 
             try {
@@ -469,7 +469,7 @@ public class Examples {
 
         try {
             InputStream contents = document.thumbnail(250, 250);
-            String filename = "./examples/files/test-thumbnail-large.png";
+            String filename = "./files/test-thumbnail-large.png";
             File file = new File(filename);
 
             try {
