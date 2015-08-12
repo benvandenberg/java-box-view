@@ -41,8 +41,10 @@ public class Request {
                                                         = "invalid_http_method";
     public static final String INVALID_URI_ERROR        = "invalid_uri";
     public static final String JSON_RESPONSE_ERROR
-                                            = "server_response_not_valid_json";
+                                             = "server_response_not_valid_json";
     public static final String METHOD_NOT_ALLOWED_ERROR = "method_not_allowed";
+    public static final String NO_LONGER_AVAILABLE_ERROR
+                                                        = "no_longer_available";
     public static final String NOT_FOUND_ERROR          = "not_found";
     public static final String REQUEST_TIMEOUT_ERROR    = "request_timeout";
     public static final String SERVER_ERROR             = "server_error";
@@ -118,8 +120,9 @@ public class Request {
                                                getParams,
                                                postParams,
                                                requestOptions);
-        Integer timeout = createTimeout(requestOptions);
+        Integer timeout        = createTimeout(requestOptions);
         HttpResponse response  = execute(request, timeout);
+
         return response.getEntity();
     }
 
@@ -144,9 +147,17 @@ public class Request {
                                                getParams,
                                                postParams,
                                                requestOptions);
-        Integer timeout = createTimeout(requestOptions);
+        Integer timeout        = createTimeout(requestOptions);
         HttpResponse response  = execute(request, timeout);
-        return handleJsonResponse(response, request);
+
+        String responseBody = null;
+
+        try {
+            responseBody = EntityUtils.toString(response.getEntity());
+        } catch (IOException e) {
+        }
+
+        return handleJsonResponse(responseBody, request);
     }
 
     /**
@@ -164,7 +175,7 @@ public class Request {
     protected static void error(String error,
                                 String message,
                                 HttpUriRequest request,
-                                HttpResponse response)
+                                String responseBody)
               throws BoxViewException {
         if (request != null) {
             URI uri = request.getURI();
@@ -179,27 +190,20 @@ public class Request {
 
             String requestBody = "";
 
-            if (request.getMethod() == "POST") {
+            if (request.getMethod().equals("POST")) {
                 HttpEntity entity = ((HttpPost) request).getEntity();
 
                 try {
                     requestBody = EntityUtils.toString(entity);
                 } catch (IOException e) {
+                } catch (UnsupportedOperationException e) {
                 }
             }
 
             message += "Request Body: " + requestBody + "\n";
         }
 
-        if (response != null) {
-            HttpEntity entity   = response.getEntity();
-            String responseBody = "";
-
-            try {
-                responseBody = EntityUtils.toString(entity);
-            } catch (IOException e) {
-            }
-
+        if (responseBody != null) {
             message += "\n";
             message += "Response Body: " + responseBody + "\n";
         }
@@ -321,7 +325,15 @@ public class Request {
             if (timeout > 0 && seconds >= timeout) {
                 String message = "The request timed out after retrying for "
                                  + seconds + " seconds.";
-                error(REQUEST_TIMEOUT_ERROR, message, request, response);
+
+                String responseBody = null;
+
+                try {
+                    responseBody = EntityUtils.toString(response.getEntity());
+                } catch (IOException e) {
+                }
+
+                error(REQUEST_TIMEOUT_ERROR, message, request, responseBody);
             }
 
             String retryAfter = response.getFirstHeader("Retry-After")
@@ -359,21 +371,21 @@ public class Request {
             throws BoxViewException {
         HttpUriRequest request = null;
 
-        if (method == "GET") {
+        if (method.equals("GET")) {
             request = new HttpGet(uri);
-        } else if (method == "POST") {
+        } else if (method.equals("POST")) {
             request = new HttpPost(uri);
 
             if (requestEntity != null) {
                 ((HttpPost) request).setEntity(requestEntity);
             }
-        } else if (method == "PUT") {
+        } else if (method.equals("PUT")) {
             request = new HttpPut(uri);
 
             if (requestEntity != null) {
                 ((HttpPut) request).setEntity(requestEntity);
             }
-        } else if (method == "DELETE") {
+        } else if (method.equals("DELETE")) {
             request = new HttpDelete(uri);
         } else {
             String message = "Invalid HTTP method \"" + method + "\"";
@@ -465,6 +477,7 @@ public class Request {
         errorCodes.put(401, UNAUTHORIZED_ERROR);
         errorCodes.put(404, NOT_FOUND_ERROR);
         errorCodes.put(405, METHOD_NOT_ALLOWED_ERROR);
+        errorCodes.put(410, NO_LONGER_AVAILABLE_ERROR);
         errorCodes.put(415, UNSUPPORTED_MEDIA_TYPE_ERROR);
         errorCodes.put(429, TOO_MANY_REQUESTS_ERROR);
 
@@ -491,32 +504,28 @@ public class Request {
      * @throws BoxViewException
      */
     private static Map<String, Object> handleJsonResponse(
-                                                        HttpResponse response,
+                                                        String responseBody,
                                                         HttpUriRequest request)
                    throws BoxViewException {
-        String body = null;
-
-        try {
-            body = EntityUtils.toString(response.getEntity());
-        } catch (IOException e) {
-        }
-
         TypeToken<Map<String, Object>> typeToken =
                                         new TypeToken<Map<String, Object>>() {};
         java.lang.reflect.Type mapType           = typeToken.getType();
-        Map<String, Object> jsonDecoded          = GSON.fromJson(body, mapType);
+        Map<String, Object> jsonDecoded          = GSON.fromJson(responseBody,
+                                                                 mapType);
 
         if (jsonDecoded == null) {
-            error(JSON_RESPONSE_ERROR, null, request, response);
+            error(JSON_RESPONSE_ERROR, null, request, responseBody);
         }
 
-        if (jsonDecoded.containsKey("status")
-                && jsonDecoded.get("status").toString() == "error") {
-            String message = (jsonDecoded.containsKey("error_message")
-                              && jsonDecoded.get("error_message") != null)
-                                 ? jsonDecoded.get("error_message").toString()
-                                 : "Server Error";
-            error(SERVER_ERROR, message, request, response);
+        if (jsonDecoded.containsKey("type")
+                && jsonDecoded.get("type").equals("error")) {
+            String message = "Server Error";
+
+            if (jsonDecoded.containsKey("message")) {
+                message = jsonDecoded.get("message").toString();
+            }
+
+            error(SERVER_ERROR, message, request, responseBody);
         }
 
         return jsonDecoded;
@@ -549,6 +558,17 @@ public class Request {
             message = e.getMessage();
         }
 
-        error(error, message, request, response);
+        String responseBody = null;
+
+        try {
+            responseBody = EntityUtils.toString(response.getEntity());
+        } catch (IOException e1) {
+        }
+
+        // check if there is an error message in the JSON response
+        handleJsonResponse(responseBody, request);
+
+        // if not, send a regular error
+        error(error, message, request, responseBody);
     }
 }
