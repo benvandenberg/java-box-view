@@ -17,9 +17,22 @@ For more information about the Box View API, see the [API docs at developers.box
 
 ### Install
 
-First, get the library. You can download the JAR here: http://crocodoc.github.io/java-box-view/box-view.jar
+Add box-view.jar to your classpath after downloading or building the JAR.
 
-Add box-view.jar to your classpath.
+#### Download a fat JAR file
+
+As one option, the library can be downloaded. You can download the JAR here: http://crocodoc.github.io/java-box-view/box-view.jar
+This is a fat JAR file, which contains all of the classes for the dependencies.
+
+#### Build a non-fat JAR file
+
+As another option, the library can be built locally. Clone the repository, and run with Maven 3.x
+
+```
+mvn install
+```
+
+This installs the JAR to your local Maven repository at ``/path/to/.m2/repository/com/box/view/box-view/1.0/box-view-1.0.jar``.
 
 ## Getting Started
 

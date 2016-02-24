@@ -1,0 +1,70 @@
+<!--
+  ~ Title:        pom.xml
+  ~ Copyright:    Copyright (c) 2000-2016 Blackboard Inc. and its subsidiary companies. All rights reserved.
+  -->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.box.view</groupId>
+    <artifactId>box-view</artifactId>
+    <packaging>jar</packaging>
+    <version>1.0</version>
+
+    <name>box-view</name>
+    <url>http://maven.apache.org</url>
+    <description>This is the Java box-view POM</description>
+
+    <properties>
+        <gson.version>2.3.1</gson.version>
+        <http.client.version>4.4</http.client.version>
+        <http.core.version>4.4</http.core.version>
+        <http.mime.version>4.4</http.mime.version>
+        <commons.io.version>2.4</commons.io.version>
+        <commons.logging.version>1.2</commons.logging.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>${gson.version}</version> 
+        </dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+            <version>${http.client.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpcore</artifactId>
+            <version>${http.core.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpmime</artifactId>
+            <version>${http.mime.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>${commons.io.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-logging</groupId>
+            <artifactId>commons-logging</artifactId>
+            <version>${commons.logging.version}</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>2.4</version>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>
