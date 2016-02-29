@@ -16,6 +16,10 @@
     <description>This is the Java box-view POM</description>
 
     <properties>
+        <repo.releases.name></repo.releases.name>
+        <repo.releases.url></repo.releases.url>
+        <repo.snapshots.name></repo.snapshots.name>
+        <repo.snapshots.url></repo.snapshots.url>
         <gson.version>2.3.1</gson.version>
         <http.client.version>4.4</http.client.version>
         <http.core.version>4.4</http.core.version>
@@ -23,6 +27,21 @@
         <commons.io.version>2.4</commons.io.version>
         <commons.logging.version>1.2</commons.logging.version>
     </properties>
+
+    <distributionManagement>
+        <repository>
+            <id>releases</id>
+            <name>${repo.releases.name}</name>
+            <url>${repo.releases.url}</url>
+            <uniqueVersion>false</uniqueVersion>
+        </repository>
+        <snapshotRepository>
+            <id>snapshots</id>
+            <name>${repo.snapshots.name}</name>
+            <url>${repo.snapshots.url}</url>
+            <uniqueVersion>true</uniqueVersion>
+        </snapshotRepository>
+    </distributionManagement>
 
     <dependencies>
         <dependency>
