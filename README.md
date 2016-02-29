@@ -34,6 +34,8 @@ mvn install
 
 This installs the JAR to your local Maven repository at ``/path/to/.m2/repository/com/box/view/box-view/1.0/box-view-1.0.jar``.
 
+When uploading to a Maven repository, the URL can be specified from the command line with the ``-Drepo.releases.url`` or ``-Drepo.snapshots.url`` options. Refer to the pom.xml file.
+
 ## Getting Started
 
 ### Get an API Key
